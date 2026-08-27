@@ -43,14 +43,36 @@ namespace MsfsPhysicsCamera
                 {
                     _effectMultiplier = value;
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(EffectMultiplier)));
+                    SaveSettings();
                 }
             }
         }
+
+        private double _bumpMultiplier = 1.0;
+        public double BumpMultiplier
+        {
+            get => _bumpMultiplier;
+            set
+            {
+                if (_bumpMultiplier != value)
+                {
+                    _bumpMultiplier = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BumpMultiplier)));
+                    SaveSettings();
+                }
+            }
+        }
+
+        private AppSettings settings;
 
         public MainWindow()
         {
             InitializeComponent();
             DataContext = this;
+
+            settings = AppSettings.Load();
+            _effectMultiplier = settings.EffectMultiplier;
+            _bumpMultiplier = settings.BumpMultiplier;
 
             physics = new PhysicsEngine();
             stopwatch = new Stopwatch();
@@ -61,6 +83,16 @@ namespace MsfsPhysicsCamera
 
             // Update UI at 60fps
             CompositionTarget.Rendering += UpdateUI;
+        }
+
+        private void SaveSettings()
+        {
+            if (settings != null)
+            {
+                settings.EffectMultiplier = _effectMultiplier;
+                settings.BumpMultiplier = _bumpMultiplier;
+                settings.Save();
+            }
         }
 
         private void PhysicsLoop()
@@ -80,10 +112,19 @@ namespace MsfsPhysicsCamera
                     double dt = currentTime - lastTime;
                     lastTime = currentTime;
 
-                    if (simConnect.IsConnected)
+                    if (!simConnect.IsConnected)
+                    {
+                        // Try to reconnect every 2 seconds
+                        if (currentTime % 2.0 < dt)
+                        {
+                            Dispatcher.Invoke(() => StatusText = "Attempting to connect to MSFS...");
+                            simConnect.Connect();
+                        }
+                    }
+                    else
                     {
                         var data = simConnect.CurrentData;
-                        physics.Update(data, dt, EffectMultiplier);
+                        physics.Update(data, dt, EffectMultiplier, BumpMultiplier);
 
                         // FreeTrack expects translations in millimeters and rotations in radians. 
                         // The base output was misjudged by roughly a factor of 16.

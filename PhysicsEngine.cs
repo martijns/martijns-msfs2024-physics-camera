@@ -26,7 +26,7 @@ namespace MsfsPhysicsCamera
 
         private Random rand = new Random();
 
-        public void Update(SimConnectHandler.TelemetryData telemetry, double dt, double effectMultiplier = 1.0)
+        public void Update(SimConnectHandler.TelemetryData telemetry, double dt, double effectMultiplier = 1.0, double bumpMultiplier = 1.0)
         {
             if (dt <= 0) return;
 
@@ -47,7 +47,7 @@ namespace MsfsPhysicsCamera
             // Add runway bumpiness if on ground
             if (telemetry.SimOnGround == 1 && telemetry.WheelRpm > 10)
             {
-                double bumpAmplitude = Math.Min(telemetry.WheelRpm / 1000.0, 1.0) * 0.5 * effectMultiplier;
+                double bumpAmplitude = Math.Min(telemetry.WheelRpm / 1000.0, 1.0) * 0.5 * effectMultiplier * bumpMultiplier;
                 extForceY += (rand.NextDouble() - 0.5) * bumpAmplitude * 100.0; 
                 extForceX += (rand.NextDouble() - 0.5) * bumpAmplitude * 50.0;
             }

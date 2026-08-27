@@ -9,7 +9,7 @@ namespace MsfsPhysicsCamera
     {
         private const int WM_USER_SIMCONNECT = 0x0402;
         private SimConnect? simconnect = null;
-        private bool _isConnected = false;
+        private volatile bool _isConnected = false;
         private readonly object _dataLock = new object();
         private CancellationTokenSource _cts = new CancellationTokenSource();
         private Thread? _messageThread;
@@ -47,7 +47,14 @@ namespace MsfsPhysicsCamera
         public void Connect()
         {
             if (_isConnected) return;
-            
+
+            // Clean up any previous connection before reconnecting
+            _cts.Cancel();
+            _messageThread?.Join(500);
+            simconnect?.Dispose();
+            simconnect = null;
+            _cts = new CancellationTokenSource();
+
             try
             {
                 simconnect = new SimConnect("MsfsPhysicsCamera", IntPtr.Zero, WM_USER_SIMCONNECT, null, 0);
@@ -76,16 +83,17 @@ namespace MsfsPhysicsCamera
 
                 Console.WriteLine("Connected to MSFS.");
                 _isConnected = true;
-                _cts = new CancellationTokenSource();
-                
+
                 // Start a thread to process SimConnect messages
+                var token = _cts.Token;
+                var sc = simconnect;
                 _messageThread = new Thread(() =>
                 {
-                    while (!_cts.Token.IsCancellationRequested)
+                    while (!token.IsCancellationRequested)
                     {
                         try
                         {
-                            simconnect?.ReceiveMessage();
+                            sc?.ReceiveMessage();
                         }
                         catch (Exception ex)
                         {
@@ -128,6 +136,7 @@ namespace MsfsPhysicsCamera
         {
             Console.WriteLine("MSFS exited. Disconnecting...");
             _isConnected = false;
+            _cts.Cancel();
         }
 
         private void Simconnect_OnRecvOpen(SimConnect sender, SIMCONNECT_RECV_OPEN data)

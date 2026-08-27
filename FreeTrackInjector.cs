@@ -46,6 +46,7 @@ namespace MsfsPhysicsCamera
             {
                 if (accessor == null)
                 {
+                    mmf?.Dispose();
                     mmf = MemoryMappedFile.CreateOrOpen("FT_SharedMem", Marshal.SizeOf(typeof(FreeTrackData)));
                     accessor = mmf.CreateViewAccessor();
                     Console.WriteLine("FreeTrack Memory Mapped File initialized.");

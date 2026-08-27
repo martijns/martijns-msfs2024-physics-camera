@@ -1,0 +1,63 @@
+<Window x:Class="MsfsPhysicsCamera.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MSFS Physics Camera" Height="450" Width="600" Closing="Window_Closing">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Row="0" Grid.ColumnSpan="2" Margin="0,0,0,15">
+            <TextBlock Text="Effect Multiplier:" FontWeight="Bold" />
+            <DockPanel Margin="0,5,0,0">
+                <TextBlock Text="{Binding EffectMultiplier, StringFormat={}{0:F2}x}" DockPanel.Dock="Right" Width="40" TextAlignment="Right" VerticalAlignment="Center" FontWeight="Bold"/>
+                <Slider Minimum="-16" Maximum="16" Value="{Binding EffectMultiplier}" TickFrequency="0.1" IsSnapToTickEnabled="True" VerticalAlignment="Center" />
+            </DockPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,10,0">
+            <TextBlock Text="Telemetry Input (G-Forces)" FontWeight="Bold" FontSize="16" Margin="0,0,0,10" />
+            
+            <TextBlock Text="Accel X (Lateral):" />
+            <ProgressBar Minimum="-50" Maximum="50" Value="{Binding AccelX}" Height="20" Margin="0,0,0,10" />
+            
+            <TextBlock Text="Accel Y (Vertical):" />
+            <ProgressBar Minimum="-50" Maximum="50" Value="{Binding AccelY}" Height="20" Margin="0,0,0,10" />
+            
+            <TextBlock Text="Accel Z (Longitudinal):" />
+            <ProgressBar Minimum="-50" Maximum="50" Value="{Binding AccelZ}" Height="20" Margin="0,0,0,10" />
+
+            <TextBlock Text="Wheel RPM:" Margin="0,10,0,0" />
+            <TextBlock Text="{Binding WheelRpm}" FontWeight="Bold" />
+            
+            <TextBlock Text="On Ground:" Margin="0,10,0,0" />
+            <TextBlock Text="{Binding OnGround}" FontWeight="Bold" />
+            
+            <TextBlock Text="{Binding StatusText}" Foreground="Green" FontWeight="Bold" Margin="0,20,0,0" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Grid.Column="1" Margin="10,0,0,0">
+            <TextBlock Text="Physics Output (Head)" FontWeight="Bold" FontSize="16" Margin="0,0,0,10" />
+            
+            <TextBlock Text="Head X (Left/Right):" />
+            <ProgressBar Minimum="-1" Maximum="1" Value="{Binding HeadX}" Height="20" Margin="0,0,0,10" />
+            
+            <TextBlock Text="Head Y (Up/Down):" />
+            <ProgressBar Minimum="-1" Maximum="1" Value="{Binding HeadY}" Height="20" Margin="0,0,0,10" />
+            
+            <TextBlock Text="Head Z (Forward/Back):" />
+            <ProgressBar Minimum="-1" Maximum="1" Value="{Binding HeadZ}" Height="20" Margin="0,0,0,10" />
+
+            <TextBlock Text="Pitch:" Margin="0,10,0,0" />
+            <ProgressBar Minimum="-0.5" Maximum="0.5" Value="{Binding HeadPitch}" Height="20" Margin="0,0,0,10" />
+            
+            <TextBlock Text="Roll:" />
+            <ProgressBar Minimum="-0.5" Maximum="0.5" Value="{Binding HeadRoll}" Height="20" Margin="0,0,0,10" />
+        </StackPanel>
+    </Grid>
+</Window>

@@ -24,7 +24,8 @@ namespace MsfsPhysicsCamera
         private double velX = 0, velY = 0, velZ = 0;
         private double velPitch = 0, velRoll = 0;
 
-        private Random rand = new Random();
+        // Noise position advances with wheel rotation, so bump frequency scales with taxi speed.
+        private double noisePos = 0;
 
         private const double DT_MAX = 0.05;
         private const double SCALE_TRANS_XY = -3.0;
@@ -35,6 +36,13 @@ namespace MsfsPhysicsCamera
         private const double BUMP_AMP_Y_MULT = 100.0;
         private const double BUMP_AMP_X_MULT = 50.0;
         private const double WHEEL_RPM_NORM = 1000.0;
+
+        // Pavement features per wheel revolution. At 1000 RPM this yields a base bump
+        // frequency of ~10 Hz (well above the Y-axis natural frequency of ~2.5 Hz)
+        // and a detail octave at ~25 Hz (below the ~30 Hz Nyquist of the 60 Hz loop).
+        private const double BUMP_TEXTURE_SCALE = 0.6;
+        private const int BUMP_SEED_Y = 1;
+        private const int BUMP_SEED_X = 7;
 
         public void Update(SimConnectHandler.TelemetryData telemetry, double dt, double effectMultiplier = 1.0, double bumpMultiplier = 1.0)
         {
@@ -55,12 +63,23 @@ namespace MsfsPhysicsCamera
             double extForceY = telemetry.AccelY * scaleY;
             double extForceZ = telemetry.AccelZ * scaleZ;
 
-            // Add runway bumpiness if on ground
+            // Add runway bumpiness if on ground.
+            // Uses Perlin noise sampled along a position driven by wheel rotation, so the
+            // bump frequency scales with taxi speed. Two octaves (base + detail) keep the
+            // texture crisp instead of feeling dampened by the spring-damper low-pass.
             if (telemetry.SimOnGround == 1 && telemetry.WheelRpm > 10)
             {
+                double revPerSec = telemetry.WheelRpm / 60.0;
+                noisePos += revPerSec * BUMP_TEXTURE_SCALE * dt;
+
                 double bumpAmplitude = Math.Min(telemetry.WheelRpm / WHEEL_RPM_NORM, 1.0) * BUMP_AMP_BASE * effectMultiplier * bumpMultiplier;
-                extForceY += (rand.NextDouble() - 0.5) * bumpAmplitude * BUMP_AMP_Y_MULT; 
-                extForceX += (rand.NextDouble() - 0.5) * bumpAmplitude * BUMP_AMP_X_MULT;
+
+                // Base octave (pavement slabs) + detail octave at 2.5x frequency (surface texture)
+                double noiseY = Perlin1D(noisePos + BUMP_SEED_Y) + 0.5 * Perlin1D(noisePos * 2.5 + BUMP_SEED_Y + 100);
+                double noiseX = Perlin1D(noisePos + BUMP_SEED_X) + 0.5 * Perlin1D(noisePos * 2.5 + BUMP_SEED_X + 100);
+
+                extForceY += noiseY * bumpAmplitude * BUMP_AMP_Y_MULT;
+                extForceX += noiseX * bumpAmplitude * BUMP_AMP_X_MULT;
             }
 
             // Update Spring-Mass-Damper for each axis
@@ -94,6 +113,48 @@ namespace MsfsPhysicsCamera
             
             vel += accel * dt;
             pos += vel * dt;
+        }
+
+        /// <summary>
+        /// 1D Perlin (gradient) noise. Returns a smooth, continuous value in roughly [-1, 1].
+        /// Uses a deterministic hash-based gradient so no lookup table is needed.
+        /// </summary>
+        private static double Perlin1D(double x)
+        {
+            int x0 = (int)Math.Floor(x);
+            double fx = x - x0;
+
+            double g0 = Gradient(x0);
+            double g1 = Gradient(x0 + 1);
+
+            double d0 = g0 * fx;
+            double d1 = g1 * (fx - 1.0);
+
+            double t = Fade(fx);
+            return Lerp(d0, d1, t) * 2.0; // scale to roughly [-1, 1]
+        }
+
+        private static double Fade(double t)
+        {
+            // 6t^5 - 15t^4 + 10t^3
+            return t * t * t * (t * (t * 6 - 15) + 10);
+        }
+
+        private static double Lerp(double a, double b, double t)
+        {
+            return a + t * (b - a);
+        }
+
+        private static double Gradient(int hash)
+        {
+            // Deterministic pseudo-random gradient in [-1, 1] from integer coordinate
+            uint h = (uint)hash;
+            h ^= h >> 16;
+            h *= 0x7feb352d;
+            h ^= h >> 15;
+            h *= 0x846ca68b;
+            h ^= h >> 16;
+            return (h / (double)uint.MaxValue) * 2.0 - 1.0;
         }
     }
 }

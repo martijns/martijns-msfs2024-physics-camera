@@ -103,6 +103,8 @@ namespace MsfsPhysicsCamera
                 injector = new FreeTrackInjector();
                 simConnect.Connect();
                 
+                double timeSinceLastReconnect = 0.0;
+                
                 stopwatch.Start();
                 lastTime = stopwatch.Elapsed.TotalSeconds;
 
@@ -114,9 +116,10 @@ namespace MsfsPhysicsCamera
 
                     if (!simConnect.IsConnected)
                     {
-                        // Try to reconnect every 2 seconds
-                        if (currentTime % 2.0 < dt)
+                        timeSinceLastReconnect += dt;
+                        if (timeSinceLastReconnect > 2.0)
                         {
+                            timeSinceLastReconnect = 0.0;
                             Dispatcher.Invoke(() => StatusText = "Attempting to connect to MSFS...");
                             simConnect.Connect();
                         }

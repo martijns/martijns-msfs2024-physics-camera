@@ -7,6 +7,9 @@ namespace MsfsPhysicsCamera
 {
     public class FreeTrackInjector : IDisposable
     {
+        private const int CAM_WIDTH = 640;
+        private const int CAM_HEIGHT = 480;
+
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         private struct FreeTrackData
         {
@@ -34,12 +37,19 @@ namespace MsfsPhysicsCamera
 
         public FreeTrackInjector()
         {
+            TryInitialize();
+        }
+
+        private void TryInitialize()
+        {
             try
             {
-                // Create or open the FreeTrack shared memory
-                mmf = MemoryMappedFile.CreateOrOpen("FT_SharedMem", Marshal.SizeOf(typeof(FreeTrackData)));
-                accessor = mmf.CreateViewAccessor();
-                Console.WriteLine("FreeTrack Memory Mapped File initialized.");
+                if (accessor == null)
+                {
+                    mmf = MemoryMappedFile.CreateOrOpen("FT_SharedMem", Marshal.SizeOf(typeof(FreeTrackData)));
+                    accessor = mmf.CreateViewAccessor();
+                    Console.WriteLine("FreeTrack Memory Mapped File initialized.");
+                }
             }
             catch (Exception ex)
             {
@@ -49,15 +59,17 @@ namespace MsfsPhysicsCamera
 
         public void Update(float x, float y, float z, float pitch, float roll, float yaw)
         {
-            if (accessor == null) return;
-
-            dataId++;
+            if (accessor == null)
+            {
+                TryInitialize();
+                if (accessor == null) return;
+            }
 
             var data = new FreeTrackData
             {
-                DataID = dataId,
-                CamWidth = 640,
-                CamHeight = 480,
+                DataID = Interlocked.Increment(ref dataId),
+                CamWidth = CAM_WIDTH,
+                CamHeight = CAM_HEIGHT,
                 X = x,
                 Y = y,
                 Z = z,

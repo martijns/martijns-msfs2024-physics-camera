@@ -26,9 +26,20 @@ namespace MsfsPhysicsCamera
 
         private Random rand = new Random();
 
+        private const double DT_MAX = 0.05;
+        private const double SCALE_TRANS_XY = -3.0;
+        private const double SCALE_TRANS_Z = 3.0;
+        private const double SCALE_ROT = -0.05;
+        
+        private const double BUMP_AMP_BASE = 0.5;
+        private const double BUMP_AMP_Y_MULT = 100.0;
+        private const double BUMP_AMP_X_MULT = 50.0;
+        private const double WHEEL_RPM_NORM = 1000.0;
+
         public void Update(SimConnectHandler.TelemetryData telemetry, double dt, double effectMultiplier = 1.0, double bumpMultiplier = 1.0)
         {
             if (dt <= 0) return;
+            dt = Math.Min(dt, DT_MAX);
 
             // 1. Calculate external forces based on aircraft acceleration
             // It turns out FreeTrack/MSFS expects +Z for backward and -Z for forward.
@@ -36,9 +47,9 @@ namespace MsfsPhysicsCamera
             // When braking (-AccelZ), we want the head to move forward (-Z).
             // Therefore, Z scale should be positive!
             
-            double scaleX = -3.0 * effectMultiplier; 
-            double scaleY = -3.0 * effectMultiplier; 
-            double scaleZ = 3.0 * effectMultiplier; // Inverted!
+            double scaleX = SCALE_TRANS_XY * effectMultiplier; 
+            double scaleY = SCALE_TRANS_XY * effectMultiplier; 
+            double scaleZ = SCALE_TRANS_Z * effectMultiplier; 
 
             double extForceX = telemetry.AccelX * scaleX;
             double extForceY = telemetry.AccelY * scaleY;
@@ -47,9 +58,9 @@ namespace MsfsPhysicsCamera
             // Add runway bumpiness if on ground
             if (telemetry.SimOnGround == 1 && telemetry.WheelRpm > 10)
             {
-                double bumpAmplitude = Math.Min(telemetry.WheelRpm / 1000.0, 1.0) * 0.5 * effectMultiplier * bumpMultiplier;
-                extForceY += (rand.NextDouble() - 0.5) * bumpAmplitude * 100.0; 
-                extForceX += (rand.NextDouble() - 0.5) * bumpAmplitude * 50.0;
+                double bumpAmplitude = Math.Min(telemetry.WheelRpm / WHEEL_RPM_NORM, 1.0) * BUMP_AMP_BASE * effectMultiplier * bumpMultiplier;
+                extForceY += (rand.NextDouble() - 0.5) * bumpAmplitude * BUMP_AMP_Y_MULT; 
+                extForceX += (rand.NextDouble() - 0.5) * bumpAmplitude * BUMP_AMP_X_MULT;
             }
 
             // Update Spring-Mass-Damper for each axis
@@ -62,8 +73,8 @@ namespace MsfsPhysicsCamera
             UpdateAxis(ref HeadZ, ref velZ, extForceZ, dt);
             
             // Pitch and Roll based on X/Z accelerations (head tilts forward when braking)
-            double extForcePitch = telemetry.AccelZ * -0.05 * effectMultiplier;
-            double extForceRoll = telemetry.AccelX * -0.05 * effectMultiplier;
+            double extForcePitch = telemetry.AccelZ * SCALE_ROT * effectMultiplier;
+            double extForceRoll = telemetry.AccelX * SCALE_ROT * effectMultiplier;
 
             UpdateAxis(ref HeadPitch, ref velPitch, extForcePitch, dt, k: 300, c: 40);
             UpdateAxis(ref HeadRoll, ref velRoll, extForceRoll, dt, k: 300, c: 40);

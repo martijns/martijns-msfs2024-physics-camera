@@ -9,6 +9,10 @@ namespace MsfsPhysicsCamera
     {
         private const int WM_USER_SIMCONNECT = 0x0402;
         private SimConnect? simconnect = null;
+        private bool _isConnected = false;
+        private readonly object _dataLock = new object();
+        private CancellationTokenSource _cts = new CancellationTokenSource();
+        private Thread? _messageThread;
 
         public enum DEFINITIONS { TelemetryData }
         public enum DATA_REQUESTS { TelemetryRequest }
@@ -26,11 +30,24 @@ namespace MsfsPhysicsCamera
             public int SimOnGround;
         }
 
-        public TelemetryData CurrentData;
-        public bool IsConnected => simconnect != null;
+        private TelemetryData _currentData;
+        public TelemetryData CurrentData
+        {
+            get
+            {
+                lock (_dataLock)
+                {
+                    return _currentData;
+                }
+            }
+        }
+
+        public bool IsConnected => _isConnected;
 
         public void Connect()
         {
+            if (_isConnected) return;
+            
             try
             {
                 simconnect = new SimConnect("MsfsPhysicsCamera", IntPtr.Zero, WM_USER_SIMCONNECT, null, 0);
@@ -49,37 +66,45 @@ namespace MsfsPhysicsCamera
 
                 simconnect.RegisterDataDefineStruct<TelemetryData>(DEFINITIONS.TelemetryData);
 
-                simconnect.OnRecvOpen += new SimConnect.RecvOpenEventHandler(Simconnect_OnRecvOpen);
-                simconnect.OnRecvQuit += new SimConnect.RecvQuitEventHandler(Simconnect_OnRecvQuit);
-                simconnect.OnRecvException += new SimConnect.RecvExceptionEventHandler(Simconnect_OnRecvException);
-                simconnect.OnRecvSimobjectData += new SimConnect.RecvSimobjectDataEventHandler(Simconnect_OnRecvSimobjectData);
+                simconnect.OnRecvOpen += Simconnect_OnRecvOpen;
+                simconnect.OnRecvQuit += Simconnect_OnRecvQuit;
+                simconnect.OnRecvException += Simconnect_OnRecvException;
+                simconnect.OnRecvSimobjectData += Simconnect_OnRecvSimobjectData;
 
                 // Request data every frame
                 simconnect.RequestDataOnSimObject(DATA_REQUESTS.TelemetryRequest, DEFINITIONS.TelemetryData, SimConnect.SIMCONNECT_OBJECT_ID_USER, SIMCONNECT_PERIOD.SIM_FRAME, 0, 0, 0, 0);
 
                 Console.WriteLine("Connected to MSFS.");
+                _isConnected = true;
+                _cts = new CancellationTokenSource();
                 
                 // Start a thread to process SimConnect messages
-                new Thread(() =>
+                _messageThread = new Thread(() =>
                 {
-                    while (IsConnected)
+                    while (!_cts.Token.IsCancellationRequested)
                     {
                         try
                         {
-                            if (simconnect != null)
-                            {
-                                simconnect.ReceiveMessage();
-                            }
+                            simconnect?.ReceiveMessage();
                         }
-                        catch { /* Ignored for this POC */ }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("SimConnect ReceiveMessage Error: " + ex.Message);
+                            _isConnected = false;
+                            break;
+                        }
                         Thread.Sleep(1);
                     }
                 })
-                { IsBackground = true }.Start();
+                { IsBackground = true };
+                _messageThread.Start();
             }
             catch (COMException ex)
             {
                 Console.WriteLine($"SimConnect Connection Failed: {ex.Message}");
+                _isConnected = false;
+                simconnect?.Dispose();
+                simconnect = null;
             }
         }
 
@@ -87,7 +112,10 @@ namespace MsfsPhysicsCamera
         {
             if (data.dwRequestID == (uint)DATA_REQUESTS.TelemetryRequest)
             {
-                CurrentData = (TelemetryData)data.dwData[0];
+                lock (_dataLock)
+                {
+                    _currentData = (TelemetryData)data.dwData[0];
+                }
             }
         }
 
@@ -99,16 +127,21 @@ namespace MsfsPhysicsCamera
         private void Simconnect_OnRecvQuit(SimConnect sender, SIMCONNECT_RECV data)
         {
             Console.WriteLine("MSFS exited. Disconnecting...");
-            Dispose();
+            _isConnected = false;
         }
 
         private void Simconnect_OnRecvOpen(SimConnect sender, SIMCONNECT_RECV_OPEN data)
         {
             Console.WriteLine("SimConnect Open event received.");
+            _isConnected = true;
         }
 
         public void Dispose()
         {
+            _isConnected = false;
+            _cts.Cancel();
+            _messageThread?.Join(500);
+
             if (simconnect != null)
             {
                 simconnect.Dispose();

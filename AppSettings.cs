@@ -8,6 +8,8 @@ namespace MsfsPhysicsCamera
     {
         public double EffectMultiplier { get; set; } = 1.0;
         public double BumpMultiplier { get; set; } = 1.0;
+        public double? WindowTop { get; set; }
+        public double? WindowLeft { get; set; }
 
         private static string SettingsFilePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.json");
 

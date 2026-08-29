@@ -74,6 +74,22 @@ namespace MsfsPhysicsCamera
             _effectMultiplier = settings.EffectMultiplier;
             _bumpMultiplier = settings.BumpMultiplier;
 
+            if (settings.WindowTop.HasValue && settings.WindowLeft.HasValue)
+            {
+                double left = settings.WindowLeft.Value;
+                double top = settings.WindowTop.Value;
+
+                // Ensure the window is placed within the current virtual screen bounds
+                if (left >= SystemParameters.VirtualScreenLeft &&
+                    top >= SystemParameters.VirtualScreenTop &&
+                    left < SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth - 50 &&
+                    top < SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight - 50)
+                {
+                    this.Left = left;
+                    this.Top = top;
+                }
+            }
+
             physics = new PhysicsEngine();
             stopwatch = new Stopwatch();
 
@@ -181,6 +197,18 @@ namespace MsfsPhysicsCamera
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
+            if (this.WindowState == WindowState.Normal)
+            {
+                settings.WindowTop = this.Top;
+                settings.WindowLeft = this.Left;
+            }
+            else
+            {
+                settings.WindowTop = this.RestoreBounds.Top;
+                settings.WindowLeft = this.RestoreBounds.Left;
+            }
+            settings.Save();
+
             isRunning = false;
             physicsThread?.Join(1000);
             simConnect?.Dispose();

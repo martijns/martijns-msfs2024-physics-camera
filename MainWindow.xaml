@@ -39,7 +39,7 @@
             <ProgressBar Minimum="-50" Maximum="50" Value="{Binding AccelZ}" Height="20" Margin="0,0,0,10" />
 
             <TextBlock Text="Wheel RPM:" Margin="0,10,0,0" />
-            <TextBlock Text="{Binding WheelRpm}" FontWeight="Bold" />
+            <TextBlock Text="{Binding WheelRpm, StringFormat={}{0:F3}}" FontWeight="Bold" />
             
             <TextBlock Text="On Ground:" Margin="0,10,0,0" />
             <TextBlock Text="{Binding OnGround}" FontWeight="Bold" />

@@ -89,8 +89,7 @@ namespace MsfsPhysicsCamera
             
             // For Y-axis (vertical bumps), we want a much faster response (stiffer spring, lower mass effect)
             // so high frequency bumps from taxiing aren't completely swallowed by the low-pass filter effect.
-            // UpdateAxis(ref HeadY, ref velY, extForceY, dt, k: 500, c: 40, m: 2.0);
-            UpdateAxis(ref HeadY, ref velY, extForceY, dt);
+            UpdateAxis(ref HeadY, ref velY, extForceY, dt, k: 500, c: 40, m: 2.0);
             
             UpdateAxis(ref HeadZ, ref velZ, extForceZ, dt);
             

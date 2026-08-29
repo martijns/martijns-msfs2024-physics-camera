@@ -23,8 +23,6 @@ namespace MsfsPhysicsCamera
         public double AccelX { get; set; }
         public double AccelY { get; set; }
         public double AccelZ { get; set; }
-        public double WheelRpm { get; set; }
-        public bool OnGround { get; set; }
         public string StatusText { get; set; } = "Initializing...";
 
         public double HeadX { get; set; }
@@ -48,21 +46,6 @@ namespace MsfsPhysicsCamera
             }
         }
 
-        private double _bumpMultiplier = 1.0;
-        public double BumpMultiplier
-        {
-            get => _bumpMultiplier;
-            set
-            {
-                if (_bumpMultiplier != value)
-                {
-                    _bumpMultiplier = value;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BumpMultiplier)));
-                    SaveSettings();
-                }
-            }
-        }
-
         private AppSettings settings;
 
         public MainWindow()
@@ -72,7 +55,6 @@ namespace MsfsPhysicsCamera
 
             settings = AppSettings.Load();
             _effectMultiplier = settings.EffectMultiplier;
-            _bumpMultiplier = settings.BumpMultiplier;
 
             if (settings.WindowTop.HasValue && settings.WindowLeft.HasValue)
             {
@@ -106,7 +88,6 @@ namespace MsfsPhysicsCamera
             if (settings != null)
             {
                 settings.EffectMultiplier = _effectMultiplier;
-                settings.BumpMultiplier = _bumpMultiplier;
                 settings.Save();
             }
         }
@@ -143,7 +124,7 @@ namespace MsfsPhysicsCamera
                     else
                     {
                         var data = simConnect.CurrentData;
-                        physics.Update(data, dt, EffectMultiplier, BumpMultiplier);
+                        physics.Update(data, dt, EffectMultiplier);
 
                         // FreeTrack expects translations in millimeters and rotations in radians. 
                         // The base output was misjudged by roughly a factor of 16.
@@ -176,8 +157,6 @@ namespace MsfsPhysicsCamera
                 AccelX = data.AccelX;
                 AccelY = data.AccelY;
                 AccelZ = data.AccelZ;
-                WheelRpm = data.WheelRpm;
-                OnGround = data.SimOnGround == 1;
 
                 HeadX = physics.HeadX;
                 HeadY = physics.HeadY;

@@ -26,8 +26,6 @@ namespace MsfsPhysicsCamera
             public double VelX;
             public double VelY;
             public double VelZ;
-            public double WheelRpm;
-            public int SimOnGround;
         }
 
         private TelemetryData _currentData;
@@ -67,9 +65,6 @@ namespace MsfsPhysicsCamera
                 simconnect.AddToDataDefinition(DEFINITIONS.TelemetryData, "VELOCITY BODY X", "feet per second", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
                 simconnect.AddToDataDefinition(DEFINITIONS.TelemetryData, "VELOCITY BODY Y", "feet per second", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
                 simconnect.AddToDataDefinition(DEFINITIONS.TelemetryData, "VELOCITY BODY Z", "feet per second", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
-                
-                simconnect.AddToDataDefinition(DEFINITIONS.TelemetryData, "WHEEL RPM:1", "rpm", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
-                simconnect.AddToDataDefinition(DEFINITIONS.TelemetryData, "SIM ON GROUND", "Bool", SIMCONNECT_DATATYPE.INT32, 0.0f, SimConnect.SIMCONNECT_UNUSED);
 
                 simconnect.RegisterDataDefineStruct<TelemetryData>(DEFINITIONS.TelemetryData);
 

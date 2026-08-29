@@ -28,13 +28,15 @@ namespace MsfsPhysicsCamera
         private double noisePos = 0;
 
         private const double DT_MAX = 0.05;
-        private const double SCALE_TRANS_XY = -3.0;
+        private const double SCALE_TRANS_X = 3.0;
+        private const double SCALE_TRANS_Y = -3.0;
         private const double SCALE_TRANS_Z = 3.0;
-        private const double SCALE_ROT = -0.05;
+        private const double SCALE_ROT_PITCH = -0.05;
+        private const double SCALE_ROT_ROLL = 0.05;
         
         private const double BUMP_AMP_BASE = 0.5;
-        private const double BUMP_AMP_Y_MULT = 100.0;
-        private const double BUMP_AMP_X_MULT = 50.0;
+        private const double BUMP_AMP_Y_MULT = 25.0;
+        private const double BUMP_AMP_X_MULT = 12.5;
         private const double WHEEL_RPM_NORM = 1000.0;
 
         // Pavement features per wheel revolution. At 1000 RPM this yields a base bump
@@ -55,8 +57,8 @@ namespace MsfsPhysicsCamera
             // When braking (-AccelZ), we want the head to move forward (-Z).
             // Therefore, Z scale should be positive!
             
-            double scaleX = SCALE_TRANS_XY * effectMultiplier; 
-            double scaleY = SCALE_TRANS_XY * effectMultiplier; 
+            double scaleX = SCALE_TRANS_X * effectMultiplier; 
+            double scaleY = SCALE_TRANS_Y * effectMultiplier; 
             double scaleZ = SCALE_TRANS_Z * effectMultiplier; 
 
             double extForceX = telemetry.AccelX * scaleX;
@@ -87,13 +89,14 @@ namespace MsfsPhysicsCamera
             
             // For Y-axis (vertical bumps), we want a much faster response (stiffer spring, lower mass effect)
             // so high frequency bumps from taxiing aren't completely swallowed by the low-pass filter effect.
-            UpdateAxis(ref HeadY, ref velY, extForceY, dt, k: 500, c: 40, m: 2.0);
+            // UpdateAxis(ref HeadY, ref velY, extForceY, dt, k: 500, c: 40, m: 2.0);
+            UpdateAxis(ref HeadY, ref velY, extForceY, dt);
             
             UpdateAxis(ref HeadZ, ref velZ, extForceZ, dt);
             
             // Pitch and Roll based on X/Z accelerations (head tilts forward when braking)
-            double extForcePitch = telemetry.AccelZ * SCALE_ROT * effectMultiplier;
-            double extForceRoll = telemetry.AccelX * SCALE_ROT * effectMultiplier;
+            double extForcePitch = telemetry.AccelZ * SCALE_ROT_PITCH * effectMultiplier;
+            double extForceRoll = telemetry.AccelX * SCALE_ROT_ROLL * effectMultiplier;
 
             UpdateAxis(ref HeadPitch, ref velPitch, extForcePitch, dt, k: 300, c: 40);
             UpdateAxis(ref HeadRoll, ref velRoll, extForceRoll, dt, k: 300, c: 40);

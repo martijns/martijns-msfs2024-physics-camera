@@ -26,6 +26,8 @@ namespace MsfsPhysicsCamera
             public double VelX;
             public double VelY;
             public double VelZ;
+            public double Pitch;
+            public double Bank;
         }
 
         private TelemetryData _currentData;
@@ -65,6 +67,9 @@ namespace MsfsPhysicsCamera
                 simconnect.AddToDataDefinition(DEFINITIONS.TelemetryData, "VELOCITY BODY X", "feet per second", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
                 simconnect.AddToDataDefinition(DEFINITIONS.TelemetryData, "VELOCITY BODY Y", "feet per second", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
                 simconnect.AddToDataDefinition(DEFINITIONS.TelemetryData, "VELOCITY BODY Z", "feet per second", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                
+                simconnect.AddToDataDefinition(DEFINITIONS.TelemetryData, "PLANE PITCH DEGREES", "radians", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(DEFINITIONS.TelemetryData, "PLANE BANK DEGREES", "radians", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
 
                 simconnect.RegisterDataDefineStruct<TelemetryData>(DEFINITIONS.TelemetryData);
 

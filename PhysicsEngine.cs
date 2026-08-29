@@ -25,6 +25,7 @@ namespace MsfsPhysicsCamera
         private double velPitch = 0, velRoll = 0;
 
         private const double DT_MAX = 0.05;
+        private const double G_FEET_PER_SEC2 = 32.174;
         private const double SCALE_TRANS_X = 3.0;
         private const double SCALE_TRANS_Y = -3.0;
         private const double SCALE_TRANS_Z = 3.0;
@@ -46,9 +47,28 @@ namespace MsfsPhysicsCamera
             double scaleY = SCALE_TRANS_Y * effectMultiplier; 
             double scaleZ = SCALE_TRANS_Z * effectMultiplier; 
 
-            double extForceX = telemetry.AccelX * scaleX;
-            double extForceY = telemetry.AccelY * scaleY;
-            double extForceZ = telemetry.AccelZ * scaleZ;
+            // MSFS accelerations are kinematic (coordinate) accelerations and do not include gravity.
+            // We must calculate the specific force (what the pilot feels) by subtracting gravity.
+            // Gravity in Earth frame is 1G downwards. We project it onto the body axes.
+            double pitch = telemetry.Pitch;
+            double bank = telemetry.Bank;
+
+            double gX = G_FEET_PER_SEC2 * Math.Cos(pitch) * Math.Sin(bank);
+            double gY = -G_FEET_PER_SEC2 * Math.Cos(pitch) * Math.Cos(bank);
+            double gZ = -G_FEET_PER_SEC2 * Math.Sin(pitch);
+
+            double specificForceX = telemetry.AccelX - gX;
+            double specificForceY = telemetry.AccelY - gY;
+            double specificForceZ = telemetry.AccelZ - gZ;
+
+            // We subtract 1G from the Y axis so the head rests at 0 in steady level flight.
+            double devX = specificForceX;
+            double devY = specificForceY - G_FEET_PER_SEC2;
+            double devZ = specificForceZ;
+
+            double extForceX = devX * scaleX;
+            double extForceY = devY * scaleY;
+            double extForceZ = devZ * scaleZ;
 
             // Update Spring-Mass-Damper for each axis
             UpdateAxis(ref HeadX, ref velX, extForceX, dt);
@@ -59,7 +79,9 @@ namespace MsfsPhysicsCamera
             
             UpdateAxis(ref HeadZ, ref velZ, extForceZ, dt);
             
-            // Pitch and Roll based on X/Z accelerations (head tilts forward when braking)
+            // Pitch and Roll based on X/Z kinematic accelerations (head tilts forward when braking)
+            // We use raw Accel here because using specific force (dev) causes the camera to counteract 
+            // the aircraft's attitude (e.g. looking down while climbing, or rolling against the turn).
             double extForcePitch = telemetry.AccelZ * SCALE_ROT_PITCH * effectMultiplier;
             double extForceRoll = telemetry.AccelX * SCALE_ROT_ROLL * effectMultiplier;
 

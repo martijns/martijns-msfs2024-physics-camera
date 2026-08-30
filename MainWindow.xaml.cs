@@ -23,6 +23,14 @@ namespace MsfsPhysicsCamera
         public double AccelX { get; set; }
         public double AccelY { get; set; }
         public double AccelZ { get; set; }
+        
+        public double VelX { get; set; }
+        public double VelY { get; set; }
+        public double VelZ { get; set; }
+        
+        public double PlanePitch { get; set; }
+        public double PlaneBank { get; set; }
+
         public string StatusText { get; set; } = "Initializing...";
 
         public double HeadX { get; set; }
@@ -46,6 +54,41 @@ namespace MsfsPhysicsCamera
             }
         }
 
+        private double _transXMultiplier = 1.0;
+        public double TransXMultiplier
+        {
+            get => _transXMultiplier;
+            set { if (_transXMultiplier != value) { _transXMultiplier = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TransXMultiplier))); SaveSettings(); } }
+        }
+
+        private double _transYMultiplier = 1.0;
+        public double TransYMultiplier
+        {
+            get => _transYMultiplier;
+            set { if (_transYMultiplier != value) { _transYMultiplier = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TransYMultiplier))); SaveSettings(); } }
+        }
+
+        private double _transZMultiplier = 1.0;
+        public double TransZMultiplier
+        {
+            get => _transZMultiplier;
+            set { if (_transZMultiplier != value) { _transZMultiplier = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TransZMultiplier))); SaveSettings(); } }
+        }
+
+        private double _pitchMultiplier = 1.0;
+        public double PitchMultiplier
+        {
+            get => _pitchMultiplier;
+            set { if (_pitchMultiplier != value) { _pitchMultiplier = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PitchMultiplier))); SaveSettings(); } }
+        }
+
+        private double _rollMultiplier = 1.0;
+        public double RollMultiplier
+        {
+            get => _rollMultiplier;
+            set { if (_rollMultiplier != value) { _rollMultiplier = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RollMultiplier))); SaveSettings(); } }
+        }
+
         private AppSettings settings;
 
         public MainWindow()
@@ -55,6 +98,11 @@ namespace MsfsPhysicsCamera
 
             settings = AppSettings.Load();
             _effectMultiplier = settings.EffectMultiplier;
+            _transXMultiplier = settings.TransXMultiplier;
+            _transYMultiplier = settings.TransYMultiplier;
+            _transZMultiplier = settings.TransZMultiplier;
+            _pitchMultiplier = settings.PitchMultiplier;
+            _rollMultiplier = settings.RollMultiplier;
 
             if (settings.WindowTop.HasValue && settings.WindowLeft.HasValue)
             {
@@ -88,6 +136,11 @@ namespace MsfsPhysicsCamera
             if (settings != null)
             {
                 settings.EffectMultiplier = _effectMultiplier;
+                settings.TransXMultiplier = _transXMultiplier;
+                settings.TransYMultiplier = _transYMultiplier;
+                settings.TransZMultiplier = _transZMultiplier;
+                settings.PitchMultiplier = _pitchMultiplier;
+                settings.RollMultiplier = _rollMultiplier;
                 settings.Save();
             }
         }
@@ -124,7 +177,7 @@ namespace MsfsPhysicsCamera
                     else
                     {
                         var data = simConnect.CurrentData;
-                        physics.Update(data, dt, EffectMultiplier);
+                        physics.Update(data, dt, EffectMultiplier, TransXMultiplier, TransYMultiplier, TransZMultiplier, PitchMultiplier, RollMultiplier);
 
                         // FreeTrack expects translations in millimeters and rotations in radians. 
                         // The base output was misjudged by roughly a factor of 16.
@@ -157,6 +210,11 @@ namespace MsfsPhysicsCamera
                 AccelX = data.AccelX;
                 AccelY = data.AccelY;
                 AccelZ = data.AccelZ;
+                VelX = data.VelX;
+                VelY = data.VelY;
+                VelZ = data.VelZ;
+                PlanePitch = data.Pitch * (180.0 / Math.PI); // Convert to degrees for easier reading
+                PlaneBank = data.Bank * (180.0 / Math.PI); // Convert to degrees
 
                 HeadX = physics.HeadX;
                 HeadY = physics.HeadY;

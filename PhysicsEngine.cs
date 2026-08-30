@@ -32,7 +32,13 @@ namespace MsfsPhysicsCamera
         private const double SCALE_ROT_PITCH = -0.05;
         private const double SCALE_ROT_ROLL = 0.05;
 
-        public void Update(SimConnectHandler.TelemetryData telemetry, double dt, double effectMultiplier = 1.0)
+        public void Update(SimConnectHandler.TelemetryData telemetry, double dt, 
+            double effectMultiplier = 1.0,
+            double transXMult = 1.0,
+            double transYMult = 1.0,
+            double transZMult = 1.0,
+            double pitchMult = 1.0,
+            double rollMult = 1.0)
         {
             if (dt <= 0) return;
             dt = Math.Min(dt, DT_MAX);
@@ -43,9 +49,9 @@ namespace MsfsPhysicsCamera
             // When braking (-AccelZ), we want the head to move forward (-Z).
             // Therefore, Z scale should be positive!
             
-            double scaleX = SCALE_TRANS_X * effectMultiplier; 
-            double scaleY = SCALE_TRANS_Y * effectMultiplier; 
-            double scaleZ = SCALE_TRANS_Z * effectMultiplier; 
+            double scaleX = SCALE_TRANS_X * effectMultiplier * transXMult; 
+            double scaleY = SCALE_TRANS_Y * effectMultiplier * transYMult; 
+            double scaleZ = SCALE_TRANS_Z * effectMultiplier * transZMult; 
 
             // MSFS accelerations are kinematic (coordinate) accelerations and do not include gravity.
             // We must calculate the specific force (what the pilot feels) by subtracting gravity.
@@ -82,8 +88,8 @@ namespace MsfsPhysicsCamera
             // Pitch and Roll based on X/Z kinematic accelerations (head tilts forward when braking)
             // We use raw Accel here because using specific force (dev) causes the camera to counteract 
             // the aircraft's attitude (e.g. looking down while climbing, or rolling against the turn).
-            double extForcePitch = telemetry.AccelZ * SCALE_ROT_PITCH * effectMultiplier;
-            double extForceRoll = telemetry.AccelX * SCALE_ROT_ROLL * effectMultiplier;
+            double extForcePitch = telemetry.AccelZ * SCALE_ROT_PITCH * effectMultiplier * pitchMult;
+            double extForceRoll = telemetry.AccelX * SCALE_ROT_ROLL * effectMultiplier * rollMult;
 
             UpdateAxis(ref HeadPitch, ref velPitch, extForcePitch, dt, k: 300, c: 40);
             UpdateAxis(ref HeadRoll, ref velRoll, extForceRoll, dt, k: 300, c: 40);

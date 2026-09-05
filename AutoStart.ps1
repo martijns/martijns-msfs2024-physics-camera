@@ -5,9 +5,9 @@ param (
 $pluginName = "MsfsPhysicsCamera"
 
 # Detect executable location:
-# 1. Packaged release: binaries/MsfsPhysicsCamera.exe
+# 1. Packaged release: MsfsPhysicsCamera.exe (same folder)
 # 2. Debug build: bin\Debug\net10.0-windows\MsfsPhysicsCamera.exe
-$releasePath = Join-Path $PSScriptRoot "binaries\MsfsPhysicsCamera.exe"
+$releasePath = Join-Path $PSScriptRoot "MsfsPhysicsCamera.exe"
 $debugPath = Join-Path $PSScriptRoot "bin\Debug\net10.0-windows\MsfsPhysicsCamera.exe"
 
 $exePath = $null
@@ -22,7 +22,7 @@ if (-not $Uninstall -and -not $exePath) {
     Write-Host "Looked in:"
     Write-Host "  $releasePath"
     Write-Host "  $debugPath"
-    Write-Host "Build the project first, or place a packaged release in the 'binaries' folder."
+    Write-Host "Build the project first, or ensure the script is in the same folder as the executable."
     Pause
     exit
 }

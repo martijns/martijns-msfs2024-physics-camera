@@ -12,13 +12,13 @@
 
   <ItemGroup>
     <Reference Include="Microsoft.FlightSimulator.SimConnect">
-      <HintPath>c:\MSFS 2024 SDK\SimConnect SDK\lib\managed\Microsoft.FlightSimulator.SimConnect.dll</HintPath>
+      <HintPath>lib\Microsoft.FlightSimulator.SimConnect.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy &quot;c:\MSFS 2024 SDK\SimConnect SDK\lib\SimConnect.dll&quot; &quot;$(OutDir)&quot;" />
+    <Exec Command="copy &quot;$(ProjectDir)lib\SimConnect.dll&quot; &quot;$(OutDir)&quot;" />
   </Target>
 
 </Project>

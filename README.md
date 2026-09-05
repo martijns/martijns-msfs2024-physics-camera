@@ -15,9 +15,12 @@ A standalone application for Microsoft Flight Simulator 2024 that adds realistic
 ## Showcase
 
 ![MSFS Physics Camera](.github/ss1.png)
-![Turbulence](.github/turbulence.mp4)
-![Bouncy landing](.github/bouncy_landing.mp4)
-![Applying full brake during taxi](.github/apply_full_brake_during_taxi.mp4)
+
+https://github.com/user-attachments/assets/754c5b30-4dcb-49b1-9095-6a5220380bea
+
+https://github.com/user-attachments/assets/f35fa594-357c-4c8a-a619-67fbac6674d8
+
+https://github.com/user-attachments/assets/abc0d6e2-2e89-48db-8f8d-b41ec855b2ba
 
 ## Compatibility
 

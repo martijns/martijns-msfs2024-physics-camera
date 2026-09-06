@@ -1,9 +1,12 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Media;
+using Microsoft.Win32;
 
 namespace MsfsPhysicsCamera
 {
@@ -95,6 +98,7 @@ namespace MsfsPhysicsCamera
         {
             InitializeComponent();
             DataContext = this;
+            CheckRegistryStatus();
 
             settings = AppSettings.Load();
             _effectMultiplier = settings.EffectMultiplier;
@@ -250,6 +254,97 @@ namespace MsfsPhysicsCamera
             physicsThread?.Join(1000);
             simConnect?.Dispose();
             injector?.Dispose();
+        }
+
+        private void CheckRegistryStatus()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                bool isCorrectlyConfigured = false;
+                try
+                {
+                    using var key = Registry.CurrentUser.OpenSubKey(@"Software\NaturalPoint\NATURALPOINT\NPClient Location");
+                    if (key != null)
+                    {
+                        var pathValue = key.GetValue("Path") as string;
+                        if (!string.IsNullOrEmpty(pathValue))
+                        {
+                            string dllPath = Path.Combine(pathValue, "NPClient64.dll");
+                            if (File.Exists(dllPath))
+                            {
+                                isCorrectlyConfigured = true;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // Ignore errors
+                }
+
+                if (isCorrectlyConfigured)
+                {
+                    TrackingStatusIcon.Fill = new SolidColorBrush(Colors.Green);
+                    TrackingStatusText.Text = "Head tracking seems to be configured correctly in Flight Simulator 2024. You should be good to go.";
+                    EnableTrackingBtn.Content = "Enable head tracking (already done!)";
+                    EnableTrackingBtn.IsEnabled = false;
+                    TrackingRestartMsg.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    TrackingStatusIcon.Fill = new SolidColorBrush(Colors.Red);
+                    TrackingStatusText.Text = "Head tracking does not appear to be correctly configured. Use the button below to install fake head tracking. That's all we need to get Flight Simulator 2024 to start working with this tool.";
+                    EnableTrackingBtn.Content = "Enable head tracking";
+                    EnableTrackingBtn.IsEnabled = true;
+                    TrackingRestartMsg.Visibility = Visibility.Collapsed;
+                }
+            });
+        }
+
+        private void EnableTrackingBtn_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                using (var key = Registry.CurrentUser.CreateSubKey(@"Software\NaturalPoint\NATURALPOINT\NPClient Location"))
+                {
+                    key.SetValue("Path", AppDomain.CurrentDomain.BaseDirectory);
+                }
+
+                using (var ftKey = Registry.CurrentUser.CreateSubKey(@"Software\Freetrack\FreeTrackClient"))
+                {
+                    ftKey.SetValue("Path", AppDomain.CurrentDomain.BaseDirectory);
+                }
+
+                bool msfsRunning = Process.GetProcessesByName("FlightSimulator").Any() || 
+                                   Process.GetProcessesByName("FlightSimulator2024").Any();
+
+                if (msfsRunning)
+                {
+                    TrackingStatusIcon.Fill = new SolidColorBrush(Colors.Yellow);
+                    TrackingStatusText.Text = "Head tracking seems to be configured correctly in Flight Simulator 2024. You should be good to go.";
+                    TrackingRestartMsg.Visibility = Visibility.Visible;
+                    EnableTrackingBtn.Content = "Enable head tracking *(already done)*";
+                    EnableTrackingBtn.IsEnabled = false;
+
+                    Thread monitorThread = new Thread(() =>
+                    {
+                        while (Process.GetProcessesByName("FlightSimulator").Any() || Process.GetProcessesByName("FlightSimulator2024").Any())
+                        {
+                            Thread.Sleep(2000);
+                        }
+                        CheckRegistryStatus();
+                    }) { IsBackground = true };
+                    monitorThread.Start();
+                }
+                else
+                {
+                    CheckRegistryStatus();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to enable tracking: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }

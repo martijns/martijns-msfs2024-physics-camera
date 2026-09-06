@@ -27,8 +27,6 @@ https://github.com/user-attachments/assets/abc0d6e2-2e89-48db-8f8d-b41ec855b2ba
 Verified to work on:
 - Microsoft Flight Simulator 2024
 
-*Note: TrackIR/FreeTrack must be enabled in MSFS for the camera injection to work.*
-
 ## Installation
 
 1. Download the latest release.
@@ -37,6 +35,8 @@ Verified to work on:
    - *To uninstall the auto-start behavior, run `AutoStart-Uninstall.bat`.*
 4. Alternatively, you can run `MsfsPhysicsCamera.exe` manually before or during your flight.
 5. You'll likely want to disable the built-in camera shake ![MSFS Disable Camera Shake](.github/msfs_disable_camera_shake.png)
+
+*Note: TrackIR/FreeTrack is automatically enabled on first run if found to be unconfigured using the included `NPClient64.dll`.*
 
 ## Development
 

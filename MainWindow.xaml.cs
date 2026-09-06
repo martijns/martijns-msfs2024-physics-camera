@@ -286,65 +286,53 @@ namespace MsfsPhysicsCamera
                 {
                     TrackingStatusIcon.Fill = new SolidColorBrush(Colors.Green);
                     TrackingStatusText.Text = "Head tracking seems to be configured correctly in Flight Simulator 2024. You should be good to go.";
-                    EnableTrackingBtn.Content = "Enable head tracking (already done!)";
-                    EnableTrackingBtn.IsEnabled = false;
                     TrackingRestartMsg.Visibility = Visibility.Collapsed;
                 }
                 else
                 {
-                    TrackingStatusIcon.Fill = new SolidColorBrush(Colors.Red);
-                    TrackingStatusText.Text = "Head tracking does not appear to be correctly configured. Use the button below to install fake head tracking. That's all we need to get Flight Simulator 2024 to start working with this tool.";
-                    EnableTrackingBtn.Content = "Enable head tracking";
-                    EnableTrackingBtn.IsEnabled = true;
-                    TrackingRestartMsg.Visibility = Visibility.Collapsed;
+                    try
+                    {
+                        using (var key = Registry.CurrentUser.CreateSubKey(@"Software\NaturalPoint\NATURALPOINT\NPClient Location"))
+                        {
+                            key.SetValue("Path", AppDomain.CurrentDomain.BaseDirectory);
+                        }
+
+                        bool msfsRunning = Process.GetProcessesByName("FlightSimulator").Any() || 
+                                           Process.GetProcessesByName("FlightSimulator2024").Any();
+
+                        string fixedText = "Head tracking was unconfigured, but we automatically applied a fix. You should be good to go going forward.";
+
+                        if (msfsRunning)
+                        {
+                            TrackingStatusIcon.Fill = new SolidColorBrush(Colors.Yellow);
+                            TrackingStatusText.Text = fixedText;
+                            TrackingRestartMsg.Visibility = Visibility.Visible;
+
+                            Thread monitorThread = new Thread(() =>
+                            {
+                                while (Process.GetProcessesByName("FlightSimulator").Any() || Process.GetProcessesByName("FlightSimulator2024").Any())
+                                {
+                                    Thread.Sleep(2000);
+                                }
+                                CheckRegistryStatus();
+                            }) { IsBackground = true };
+                            monitorThread.Start();
+                        }
+                        else
+                        {
+                            TrackingStatusIcon.Fill = new SolidColorBrush(Colors.Green);
+                            TrackingStatusText.Text = fixedText;
+                            TrackingRestartMsg.Visibility = Visibility.Collapsed;
+                        }
+                    }
+                    catch
+                    {
+                        TrackingStatusIcon.Fill = new SolidColorBrush(Colors.Red);
+                        TrackingStatusText.Text = "Head tracking does not appear to be correctly configured and we could not automatically fix it. Please check your registry permissions.";
+                        TrackingRestartMsg.Visibility = Visibility.Collapsed;
+                    }
                 }
             });
-        }
-
-        private void EnableTrackingBtn_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                using (var key = Registry.CurrentUser.CreateSubKey(@"Software\NaturalPoint\NATURALPOINT\NPClient Location"))
-                {
-                    key.SetValue("Path", AppDomain.CurrentDomain.BaseDirectory);
-                }
-
-                using (var ftKey = Registry.CurrentUser.CreateSubKey(@"Software\Freetrack\FreeTrackClient"))
-                {
-                    ftKey.SetValue("Path", AppDomain.CurrentDomain.BaseDirectory);
-                }
-
-                bool msfsRunning = Process.GetProcessesByName("FlightSimulator").Any() || 
-                                   Process.GetProcessesByName("FlightSimulator2024").Any();
-
-                if (msfsRunning)
-                {
-                    TrackingStatusIcon.Fill = new SolidColorBrush(Colors.Yellow);
-                    TrackingStatusText.Text = "Head tracking seems to be configured correctly in Flight Simulator 2024. You should be good to go.";
-                    TrackingRestartMsg.Visibility = Visibility.Visible;
-                    EnableTrackingBtn.Content = "Enable head tracking *(already done)*";
-                    EnableTrackingBtn.IsEnabled = false;
-
-                    Thread monitorThread = new Thread(() =>
-                    {
-                        while (Process.GetProcessesByName("FlightSimulator").Any() || Process.GetProcessesByName("FlightSimulator2024").Any())
-                        {
-                            Thread.Sleep(2000);
-                        }
-                        CheckRegistryStatus();
-                    }) { IsBackground = true };
-                    monitorThread.Start();
-                }
-                else
-                {
-                    CheckRegistryStatus();
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Failed to enable tracking: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
         }
     }
 }

@@ -304,7 +304,7 @@ namespace MsfsPhysicsCamera
 
                         if (msfsRunning)
                         {
-                            TrackingStatusIcon.Fill = new SolidColorBrush(Colors.Yellow);
+                            TrackingStatusIcon.Fill = new SolidColorBrush(Colors.Orange);
                             TrackingStatusText.Text = fixedText;
                             TrackingRestartMsg.Visibility = Visibility.Visible;
 

@@ -258,9 +258,12 @@ namespace MsfsPhysicsCamera
 
         private void CheckRegistryStatus()
         {
-            Dispatcher.Invoke(() =>
+            // Run checks outside the UI thread to prevent blocking when reading process modules
+            ThreadPool.QueueUserWorkItem(_ =>
             {
-                bool isCorrectlyConfigured = false;
+                bool registryWasCorrect = false;
+                bool fixFailed = false;
+
                 try
                 {
                     using var key = Registry.CurrentUser.OpenSubKey(@"Software\NaturalPoint\NATURALPOINT\NPClient Location");
@@ -272,23 +275,14 @@ namespace MsfsPhysicsCamera
                             string dllPath = Path.Combine(pathValue, "NPClient64.dll");
                             if (File.Exists(dllPath))
                             {
-                                isCorrectlyConfigured = true;
+                                registryWasCorrect = true;
                             }
                         }
                     }
                 }
-                catch
-                {
-                    // Ignore errors
-                }
+                catch { }
 
-                if (isCorrectlyConfigured)
-                {
-                    TrackingStatusIcon.Fill = new SolidColorBrush(Colors.Green);
-                    TrackingStatusText.Text = "Head tracking seems to be configured correctly in Flight Simulator 2024. You should be good to go.";
-                    TrackingRestartMsg.Visibility = Visibility.Collapsed;
-                }
-                else
+                if (!registryWasCorrect)
                 {
                     try
                     {
@@ -296,42 +290,101 @@ namespace MsfsPhysicsCamera
                         {
                             key.SetValue("Path", AppDomain.CurrentDomain.BaseDirectory);
                         }
-
-                        bool msfsRunning = Process.GetProcessesByName("FlightSimulator").Any() || 
-                                           Process.GetProcessesByName("FlightSimulator2024").Any();
-
-                        string fixedText = "Head tracking was unconfigured, but we automatically applied a fix. You should be good to go going forward.";
-
-                        if (msfsRunning)
-                        {
-                            TrackingStatusIcon.Fill = new SolidColorBrush(Colors.Orange);
-                            TrackingStatusText.Text = fixedText;
-                            TrackingRestartMsg.Visibility = Visibility.Visible;
-
-                            Thread monitorThread = new Thread(() =>
-                            {
-                                while (Process.GetProcessesByName("FlightSimulator").Any() || Process.GetProcessesByName("FlightSimulator2024").Any())
-                                {
-                                    Thread.Sleep(2000);
-                                }
-                                CheckRegistryStatus();
-                            }) { IsBackground = true };
-                            monitorThread.Start();
-                        }
-                        else
-                        {
-                            TrackingStatusIcon.Fill = new SolidColorBrush(Colors.Green);
-                            TrackingStatusText.Text = fixedText;
-                            TrackingRestartMsg.Visibility = Visibility.Collapsed;
-                        }
                     }
                     catch
+                    {
+                        fixFailed = true;
+                    }
+                }
+
+                bool isMsfsRunning = false;
+                bool isNpClientLoaded = false;
+                bool accessDenied = false;
+
+                var processes = Process.GetProcessesByName("FlightSimulator")
+                    .Concat(Process.GetProcessesByName("FlightSimulator2024")).ToArray();
+
+                if (processes.Length > 0)
+                {
+                    isMsfsRunning = true;
+                    foreach (var process in processes)
+                    {
+                        try
+                        {
+                            foreach (ProcessModule module in process.Modules)
+                            {
+                                if (module.ModuleName.Equals("NPClient64.dll", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    isNpClientLoaded = true;
+                                    break;
+                                }
+                            }
+                        }
+                        catch (Win32Exception)
+                        {
+                            accessDenied = true;
+                        }
+                        if (isNpClientLoaded) break;
+                    }
+                }
+
+                Dispatcher.Invoke(() =>
+                {
+                    TrackingAccessDeniedMsg.Visibility = accessDenied ? Visibility.Visible : Visibility.Collapsed;
+
+                    if (fixFailed)
                     {
                         TrackingStatusIcon.Fill = new SolidColorBrush(Colors.Red);
                         TrackingStatusText.Text = "Head tracking does not appear to be correctly configured and we could not automatically fix it. Please check your registry permissions.";
                         TrackingRestartMsg.Visibility = Visibility.Collapsed;
+                        return;
                     }
-                }
+
+                    bool needsRestart = false;
+                    if (isMsfsRunning)
+                    {
+                        if (isNpClientLoaded)
+                        {
+                            needsRestart = false;
+                        }
+                        else if (accessDenied)
+                        {
+                            // Fallback if we can't read modules due to permissions
+                            needsRestart = !registryWasCorrect;
+                        }
+                        else
+                        {
+                            needsRestart = true;
+                        }
+                    }
+
+                    if (needsRestart)
+                    {
+                        TrackingStatusIcon.Fill = new SolidColorBrush(Colors.Orange);
+                        TrackingStatusText.Text = registryWasCorrect
+                            ? "Head tracking is configured, but MSFS hasn't loaded it yet."
+                            : "Head tracking was unconfigured, but we automatically applied a fix. You should be good to go going forward.";
+                        TrackingRestartMsg.Visibility = Visibility.Visible;
+
+                        Thread monitorThread = new Thread(() =>
+                        {
+                            while (Process.GetProcessesByName("FlightSimulator").Any() || Process.GetProcessesByName("FlightSimulator2024").Any())
+                            {
+                                Thread.Sleep(2000);
+                            }
+                            CheckRegistryStatus();
+                        }) { IsBackground = true };
+                        monitorThread.Start();
+                    }
+                    else
+                    {
+                        TrackingStatusIcon.Fill = new SolidColorBrush(Colors.Green);
+                        TrackingStatusText.Text = registryWasCorrect
+                            ? "Head tracking seems to be configured correctly in Flight Simulator. You should be good to go."
+                            : "Head tracking was unconfigured, but we automatically applied a fix. You should be good to go going forward.";
+                        TrackingRestartMsg.Visibility = Visibility.Collapsed;
+                    }
+                });
             });
         }
     }

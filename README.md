@@ -3,7 +3,7 @@
 ![AI Assisted](https://img.shields.io/badge/AI-assisted-blue)
 ![MIT](https://img.shields.io/github/license/martijns/martijns-msfs2024-physics-camera)
 
-A standalone application for Microsoft Flight Simulator 2024 that adds realistic, physics-based head movements (head shake, G-force effects) to the virtual cockpit. It reads aircraft telemetry via SimConnect and injects camera movements using the FreeTrack protocol.
+A standalone application for Microsoft Flight Simulator 2020/2024 that adds realistic, physics-based head movements (head shake, G-force effects) to the virtual cockpit. It reads aircraft telemetry via SimConnect and injects camera movements using the FreeTrack protocol.
 
 ## Features
 
@@ -25,6 +25,7 @@ https://github.com/user-attachments/assets/abc0d6e2-2e89-48db-8f8d-b41ec855b2ba
 ## Compatibility
 
 Verified to work on:
+- Microsoft Flight Simulator 2020
 - Microsoft Flight Simulator 2024
 
 ## Installation

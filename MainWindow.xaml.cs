@@ -92,7 +92,22 @@ namespace MsfsPhysicsCamera
             set { if (_rollMultiplier != value) { _rollMultiplier = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RollMultiplier))); SaveSettings(); } }
         }
 
+        private bool _minimizeOnStartup;
+        public bool MinimizeOnStartup
+        {
+            get => _minimizeOnStartup;
+            set { if (_minimizeOnStartup != value) { _minimizeOnStartup = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MinimizeOnStartup))); SaveSettings(); } }
+        }
+
+        private bool _minimizeToTray;
+        public bool MinimizeToTray
+        {
+            get => _minimizeToTray;
+            set { if (_minimizeToTray != value) { _minimizeToTray = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MinimizeToTray))); SaveSettings(); } }
+        }
+
         private AppSettings settings;
+        private System.Windows.Forms.NotifyIcon? notifyIcon;
 
         public MainWindow()
         {
@@ -107,6 +122,10 @@ namespace MsfsPhysicsCamera
             _transZMultiplier = settings.TransZMultiplier;
             _pitchMultiplier = settings.PitchMultiplier;
             _rollMultiplier = settings.RollMultiplier;
+            _minimizeOnStartup = settings.MinimizeOnStartup;
+            _minimizeToTray = settings.MinimizeToTray;
+
+            InitializeTrayIcon();
 
             if (settings.WindowTop.HasValue && settings.WindowLeft.HasValue)
             {
@@ -133,6 +152,74 @@ namespace MsfsPhysicsCamera
 
             // Update UI at 60fps
             CompositionTarget.Rendering += UpdateUI;
+
+            this.StateChanged += MainWindow_StateChanged;
+            this.Loaded += MainWindow_Loaded;
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (MinimizeOnStartup)
+            {
+                this.WindowState = WindowState.Minimized;
+            }
+        }
+
+        private void MainWindow_StateChanged(object? sender, EventArgs e)
+        {
+            if (this.WindowState == WindowState.Minimized && MinimizeToTray)
+            {
+                this.Hide();
+            }
+        }
+
+        private void InitializeTrayIcon()
+        {
+            notifyIcon = new System.Windows.Forms.NotifyIcon();
+            notifyIcon.Text = "MSFS Physics Camera";
+            
+            try
+            {
+                string exePath = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName ?? string.Empty;
+                if (!string.IsNullOrEmpty(exePath))
+                {
+                    notifyIcon.Icon = System.Drawing.Icon.ExtractAssociatedIcon(exePath);
+                }
+                else
+                {
+                    notifyIcon.Icon = System.Drawing.SystemIcons.Application;
+                }
+            }
+            catch
+            {
+                notifyIcon.Icon = System.Drawing.SystemIcons.Application;
+            }
+
+            notifyIcon.Visible = true;
+            notifyIcon.MouseClick += (s, e) =>
+            {
+                if (e.Button == System.Windows.Forms.MouseButtons.Left)
+                {
+                    ShowMainWindow();
+                }
+            };
+
+            var contextMenu = new System.Windows.Forms.ContextMenuStrip();
+            var showItem = new System.Windows.Forms.ToolStripMenuItem("Show");
+            showItem.Click += (s, e) => ShowMainWindow();
+            var quitItem = new System.Windows.Forms.ToolStripMenuItem("Quit");
+            quitItem.Click += (s, e) => this.Close();
+
+            contextMenu.Items.Add(showItem);
+            contextMenu.Items.Add(quitItem);
+            notifyIcon.ContextMenuStrip = contextMenu;
+        }
+
+        private void ShowMainWindow()
+        {
+            this.Show();
+            this.WindowState = WindowState.Normal;
+            this.Activate();
         }
 
         private void SaveSettings()
@@ -145,6 +232,8 @@ namespace MsfsPhysicsCamera
                 settings.TransZMultiplier = _transZMultiplier;
                 settings.PitchMultiplier = _pitchMultiplier;
                 settings.RollMultiplier = _rollMultiplier;
+                settings.MinimizeOnStartup = _minimizeOnStartup;
+                settings.MinimizeToTray = _minimizeToTray;
                 settings.Save();
             }
         }
@@ -254,6 +343,12 @@ namespace MsfsPhysicsCamera
             physicsThread?.Join(1000);
             simConnect?.Dispose();
             injector?.Dispose();
+            
+            if (notifyIcon != null)
+            {
+                notifyIcon.Visible = false;
+                notifyIcon.Dispose();
+            }
         }
 
         private void CheckRegistryStatus()

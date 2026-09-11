@@ -13,6 +13,9 @@ namespace MsfsPhysicsCamera
         public double PitchMultiplier { get; set; } = 1.0;
         public double RollMultiplier { get; set; } = 1.0;
 
+        public bool MinimizeOnStartup { get; set; } = false;
+        public bool MinimizeToTray { get; set; } = false;
+
         public double? WindowTop { get; set; }
         public double? WindowLeft { get; set; }
 

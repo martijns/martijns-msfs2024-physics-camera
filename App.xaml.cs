@@ -6,7 +6,7 @@ using System.Windows.Threading;
 
 namespace MsfsPhysicsCamera
 {
-    public partial class App : Application
+    public partial class App : System.Windows.Application
     {
         private Mutex? _mutex;
 
@@ -54,12 +54,12 @@ namespace MsfsPhysicsCamera
                 Margin = new Thickness(0, 0, 0, 20)
             };
 
-            Button exitButton = new Button
+            System.Windows.Controls.Button exitButton = new System.Windows.Controls.Button
             {
                 Content = "Exit (10)",
                 Width = 100,
                 Height = 30,
-                HorizontalAlignment = HorizontalAlignment.Center
+                HorizontalAlignment = System.Windows.HorizontalAlignment.Center
             };
 
             int countdown = 10;

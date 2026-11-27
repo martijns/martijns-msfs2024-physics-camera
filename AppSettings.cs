@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 
@@ -35,6 +36,9 @@ namespace MsfsPhysicsCamera
 
         public double? WindowTop { get; set; }
         public double? WindowLeft { get; set; }
+
+        public List<CameraProfile> Profiles { get; set; } = new();
+        public string? LastSelectedProfile { get; set; }
 
         private static string SettingsFilePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.json");
 

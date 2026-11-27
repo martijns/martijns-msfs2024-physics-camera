@@ -134,8 +134,17 @@
                 </StackPanel>
             </StackPanel>
 
-            <!-- Right Side (Tweaking) -->
+            <!-- Right Side (Profiles & Tweaking) -->
             <StackPanel Grid.Row="1" Grid.Column="1" Margin="10,0,0,0">
+            <TextBlock Text="Profiles" FontWeight="Bold" FontSize="16" Margin="0,0,0,10" />
+            <ComboBox x:Name="ProfileComboBox" ItemsSource="{Binding ProfileNames}" SelectedItem="{Binding SelectedProfileName, Mode=TwoWay}" Margin="0,0,0,8" />
+            <WrapPanel Margin="0,0,0,15">
+                <Button Content="Save as" Width="56" Margin="0,0,6,6" IsEnabled="{Binding CanSaveProfile}" Click="SaveProfileButton_Click" ToolTip="Save current custom settings as a profile" />
+                <Button Content="Delete" Width="56" Margin="0,0,6,6" IsEnabled="{Binding CanDeleteProfile}" Click="DeleteProfileButton_Click" ToolTip="Delete the selected custom profile" />
+                <Button Content="Share" Width="56" Margin="0,0,6,6" Click="ShareProfileButton_Click" ToolTip="Generate a shareable code for the current settings" />
+                <Button Content="Import" Width="56" Margin="0,0,0,6" Click="ImportProfileButton_Click" ToolTip="Import a profile from a share code" />
+            </WrapPanel>
+
             <TextBlock Text="Tweaking" FontWeight="Bold" FontSize="16" Margin="0,0,0,10" />
             
             <Expander Header="Multipliers" IsExpanded="False" Margin="0,0,0,10">

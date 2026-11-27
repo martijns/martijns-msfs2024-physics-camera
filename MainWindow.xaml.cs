@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -52,7 +54,7 @@ namespace MsfsPhysicsCamera
                 {
                     _effectMultiplier = value;
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(EffectMultiplier)));
-                    SaveSettings();
+                    OnTweakingSettingChanged();
                 }
             }
         }
@@ -61,126 +63,126 @@ namespace MsfsPhysicsCamera
         public double TransXMultiplier
         {
             get => _transXMultiplier;
-            set { if (_transXMultiplier != value) { _transXMultiplier = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TransXMultiplier))); SaveSettings(); } }
+            set { if (_transXMultiplier != value) { _transXMultiplier = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TransXMultiplier))); OnTweakingSettingChanged(); } }
         }
 
         private double _transYMultiplier = 1.0;
         public double TransYMultiplier
         {
             get => _transYMultiplier;
-            set { if (_transYMultiplier != value) { _transYMultiplier = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TransYMultiplier))); SaveSettings(); } }
+            set { if (_transYMultiplier != value) { _transYMultiplier = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TransYMultiplier))); OnTweakingSettingChanged(); } }
         }
 
         private double _transZMultiplier = 1.0;
         public double TransZMultiplier
         {
             get => _transZMultiplier;
-            set { if (_transZMultiplier != value) { _transZMultiplier = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TransZMultiplier))); SaveSettings(); } }
+            set { if (_transZMultiplier != value) { _transZMultiplier = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TransZMultiplier))); OnTweakingSettingChanged(); } }
         }
 
         private double _pitchMultiplier = 1.0;
         public double PitchMultiplier
         {
             get => _pitchMultiplier;
-            set { if (_pitchMultiplier != value) { _pitchMultiplier = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PitchMultiplier))); SaveSettings(); } }
+            set { if (_pitchMultiplier != value) { _pitchMultiplier = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PitchMultiplier))); OnTweakingSettingChanged(); } }
         }
 
         private double _rollMultiplier = 1.0;
         public double RollMultiplier
         {
             get => _rollMultiplier;
-            set { if (_rollMultiplier != value) { _rollMultiplier = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RollMultiplier))); SaveSettings(); } }
+            set { if (_rollMultiplier != value) { _rollMultiplier = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RollMultiplier))); OnTweakingSettingChanged(); } }
         }
 
         private double _transXMin = -1.0;
         public double TransXMin
         {
             get => _transXMin;
-            set { if (_transXMin != value) { _transXMin = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TransXMin))); SaveSettings(); } }
+            set { if (_transXMin != value) { _transXMin = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TransXMin))); OnTweakingSettingChanged(); } }
         }
 
         private double _transXMax = 1.0;
         public double TransXMax
         {
             get => _transXMax;
-            set { if (_transXMax != value) { _transXMax = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TransXMax))); SaveSettings(); } }
+            set { if (_transXMax != value) { _transXMax = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TransXMax))); OnTweakingSettingChanged(); } }
         }
 
         private double _transYMin = -1.0;
         public double TransYMin
         {
             get => _transYMin;
-            set { if (_transYMin != value) { _transYMin = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TransYMin))); SaveSettings(); } }
+            set { if (_transYMin != value) { _transYMin = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TransYMin))); OnTweakingSettingChanged(); } }
         }
 
         private double _transYMax = 1.0;
         public double TransYMax
         {
             get => _transYMax;
-            set { if (_transYMax != value) { _transYMax = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TransYMax))); SaveSettings(); } }
+            set { if (_transYMax != value) { _transYMax = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TransYMax))); OnTweakingSettingChanged(); } }
         }
 
         private double _transZMin = -1.0;
         public double TransZMin
         {
             get => _transZMin;
-            set { if (_transZMin != value) { _transZMin = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TransZMin))); SaveSettings(); } }
+            set { if (_transZMin != value) { _transZMin = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TransZMin))); OnTweakingSettingChanged(); } }
         }
 
         private double _transZMax = 1.0;
         public double TransZMax
         {
             get => _transZMax;
-            set { if (_transZMax != value) { _transZMax = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TransZMax))); SaveSettings(); } }
+            set { if (_transZMax != value) { _transZMax = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TransZMax))); OnTweakingSettingChanged(); } }
         }
 
         private double _pitchMin = -0.05;
         public double PitchMin
         {
             get => _pitchMin;
-            set { if (_pitchMin != value) { _pitchMin = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PitchMin))); SaveSettings(); } }
+            set { if (_pitchMin != value) { _pitchMin = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PitchMin))); OnTweakingSettingChanged(); } }
         }
 
         private double _pitchMax = 0.05;
         public double PitchMax
         {
             get => _pitchMax;
-            set { if (_pitchMax != value) { _pitchMax = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PitchMax))); SaveSettings(); } }
+            set { if (_pitchMax != value) { _pitchMax = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PitchMax))); OnTweakingSettingChanged(); } }
         }
 
         private double _rollMin = -0.05;
         public double RollMin
         {
             get => _rollMin;
-            set { if (_rollMin != value) { _rollMin = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RollMin))); SaveSettings(); } }
+            set { if (_rollMin != value) { _rollMin = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RollMin))); OnTweakingSettingChanged(); } }
         }
 
         private double _rollMax = 0.05;
         public double RollMax
         {
             get => _rollMax;
-            set { if (_rollMax != value) { _rollMax = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RollMax))); SaveSettings(); } }
+            set { if (_rollMax != value) { _rollMax = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RollMax))); OnTweakingSettingChanged(); } }
         }
 
         private double _washoutStrength = 0.5;
         public double WashoutStrength
         {
             get => _washoutStrength;
-            set { if (_washoutStrength != value) { _washoutStrength = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(WashoutStrength))); SaveSettings(); } }
+            set { if (_washoutStrength != value) { _washoutStrength = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(WashoutStrength))); OnTweakingSettingChanged(); } }
         }
 
         private bool _simulateGravity = true;
         public bool SimulateGravity
         {
             get => _simulateGravity;
-            set { if (_simulateGravity != value) { _simulateGravity = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SimulateGravity))); SaveSettings(); } }
+            set { if (_simulateGravity != value) { _simulateGravity = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SimulateGravity))); OnTweakingSettingChanged(); } }
         }
 
         private bool _onlyInCockpit = true;
         public bool OnlyInCockpit
         {
             get => _onlyInCockpit;
-            set { if (_onlyInCockpit != value) { _onlyInCockpit = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OnlyInCockpit))); SaveSettings(); } }
+            set { if (_onlyInCockpit != value) { _onlyInCockpit = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OnlyInCockpit))); OnTweakingSettingChanged(); } }
         }
 
         private bool _minimizeOnStartup;
@@ -206,6 +208,33 @@ namespace MsfsPhysicsCamera
 
         private AppSettings settings;
         private System.Windows.Forms.NotifyIcon? notifyIcon;
+
+        private bool _isApplyingProfile;
+        private bool _isUpdatingProfileState;
+        private string _lastBaseProfileName = CameraProfile.DefaultProfileName;
+
+        public ObservableCollection<string> ProfileNames { get; } = new();
+
+        private string _selectedProfileName = CameraProfile.DefaultProfileName;
+        public string SelectedProfileName
+        {
+            get => _selectedProfileName;
+            set
+            {
+                if (_selectedProfileName == value || string.IsNullOrEmpty(value)) return;
+                _selectedProfileName = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SelectedProfileName)));
+                NotifyProfileActionStates();
+
+                if (!_isUpdatingProfileState && !_isApplyingProfile && value != CameraProfile.CustomProfileName)
+                {
+                    LoadProfileByName(value);
+                }
+            }
+        }
+
+        public bool CanSaveProfile => SelectedProfileName == CameraProfile.CustomProfileName;
+        public bool CanDeleteProfile => SelectedProfileName != CameraProfile.DefaultProfileName && SelectedProfileName != CameraProfile.CustomProfileName;
 
         public MainWindow()
         {
@@ -236,6 +265,13 @@ namespace MsfsPhysicsCamera
             _minimizeOnStartup = settings.MinimizeOnStartup;
             _minimizeToTray = settings.MinimizeToTray;
             _exitWhenMsfsExits = settings.ExitWhenMsfsExits;
+
+            settings.Profiles ??= new List<CameraProfile>();
+            _lastBaseProfileName = !string.IsNullOrWhiteSpace(settings.LastSelectedProfile) && FindProfileByName(settings.LastSelectedProfile) != null
+                ? settings.LastSelectedProfile
+                : CameraProfile.DefaultProfileName;
+            RefreshProfileNamesList();
+            UpdateActiveProfileState();
 
             InitializeTrayIcon();
 
@@ -360,7 +396,284 @@ namespace MsfsPhysicsCamera
                 settings.MinimizeOnStartup = _minimizeOnStartup;
                 settings.MinimizeToTray = _minimizeToTray;
                 settings.ExitWhenMsfsExits = _exitWhenMsfsExits;
+                settings.LastSelectedProfile = _lastBaseProfileName;
                 settings.Save();
+            }
+        }
+
+        private void OnTweakingSettingChanged()
+        {
+            if (_isApplyingProfile) return;
+            SaveSettings();
+            UpdateActiveProfileState();
+        }
+
+        private PhysicsProfileSettings CaptureCurrentProfileSettings()
+        {
+            return new PhysicsProfileSettings
+            {
+                EffectMultiplier = _effectMultiplier,
+                TransXMultiplier = _transXMultiplier,
+                TransYMultiplier = _transYMultiplier,
+                TransZMultiplier = _transZMultiplier,
+                PitchMultiplier = _pitchMultiplier,
+                RollMultiplier = _rollMultiplier,
+                TransXMin = _transXMin,
+                TransXMax = _transXMax,
+                TransYMin = _transYMin,
+                TransYMax = _transYMax,
+                TransZMin = _transZMin,
+                TransZMax = _transZMax,
+                PitchMin = _pitchMin,
+                PitchMax = _pitchMax,
+                RollMin = _rollMin,
+                RollMax = _rollMax,
+                WashoutStrength = _washoutStrength,
+                SimulateGravity = _simulateGravity,
+                OnlyInCockpit = _onlyInCockpit
+            };
+        }
+
+        private CameraProfile? FindProfileByName(string? name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return null;
+            if (name.Equals(CameraProfile.DefaultProfileName, StringComparison.OrdinalIgnoreCase))
+            {
+                return CameraProfile.CreateDefault();
+            }
+
+            return settings?.Profiles?.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private void RefreshProfileNamesList()
+        {
+            _isUpdatingProfileState = true;
+            try
+            {
+                ProfileNames.Clear();
+                ProfileNames.Add(CameraProfile.DefaultProfileName);
+                foreach (var profile in settings.Profiles.OrderBy(p => p.Name, StringComparer.OrdinalIgnoreCase))
+                {
+                    ProfileNames.Add(profile.Name);
+                }
+            }
+            finally
+            {
+                _isUpdatingProfileState = false;
+            }
+        }
+
+        private void UpdateActiveProfileState()
+        {
+            var current = CaptureCurrentProfileSettings();
+            string? matchedName = null;
+
+            if (current.Matches(CameraProfile.CreateDefault().Settings))
+            {
+                matchedName = CameraProfile.DefaultProfileName;
+            }
+            else
+            {
+                var preferred = FindProfileByName(_lastBaseProfileName);
+                if (preferred != null && preferred.Name != CameraProfile.DefaultProfileName && current.Matches(preferred.Settings))
+                {
+                    matchedName = preferred.Name;
+                }
+                else
+                {
+                    var match = settings.Profiles.FirstOrDefault(p => current.Matches(p.Settings));
+                    if (match != null)
+                    {
+                        matchedName = match.Name;
+                    }
+                }
+            }
+
+            _isUpdatingProfileState = true;
+            try
+            {
+                if (matchedName != null)
+                {
+                    ProfileNames.Remove(CameraProfile.CustomProfileName);
+                    _lastBaseProfileName = matchedName;
+                    _selectedProfileName = matchedName;
+                }
+                else
+                {
+                    if (!ProfileNames.Contains(CameraProfile.CustomProfileName))
+                    {
+                        ProfileNames.Add(CameraProfile.CustomProfileName);
+                    }
+                    _selectedProfileName = CameraProfile.CustomProfileName;
+                }
+
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SelectedProfileName)));
+                NotifyProfileActionStates();
+            }
+            finally
+            {
+                _isUpdatingProfileState = false;
+            }
+        }
+
+        private void NotifyProfileActionStates()
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanSaveProfile)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanDeleteProfile)));
+        }
+
+        private void LoadProfileByName(string name)
+        {
+            var profile = FindProfileByName(name);
+            if (profile == null) return;
+
+            _lastBaseProfileName = profile.Name;
+            ApplyProfileSettings(profile.Settings);
+            SaveSettings();
+            UpdateActiveProfileState();
+        }
+
+        private void ApplyProfileSettings(PhysicsProfileSettings profileSettings)
+        {
+            _isApplyingProfile = true;
+            try
+            {
+                EffectMultiplier = profileSettings.EffectMultiplier;
+                TransXMultiplier = profileSettings.TransXMultiplier;
+                TransYMultiplier = profileSettings.TransYMultiplier;
+                TransZMultiplier = profileSettings.TransZMultiplier;
+                PitchMultiplier = profileSettings.PitchMultiplier;
+                RollMultiplier = profileSettings.RollMultiplier;
+                TransXMin = profileSettings.TransXMin;
+                TransXMax = profileSettings.TransXMax;
+                TransYMin = profileSettings.TransYMin;
+                TransYMax = profileSettings.TransYMax;
+                TransZMin = profileSettings.TransZMin;
+                TransZMax = profileSettings.TransZMax;
+                PitchMin = profileSettings.PitchMin;
+                PitchMax = profileSettings.PitchMax;
+                RollMin = profileSettings.RollMin;
+                RollMax = profileSettings.RollMax;
+                WashoutStrength = profileSettings.WashoutStrength;
+                SimulateGravity = profileSettings.SimulateGravity;
+                OnlyInCockpit = profileSettings.OnlyInCockpit;
+            }
+            finally
+            {
+                _isApplyingProfile = false;
+            }
+        }
+
+        private void SaveOrUpdateProfile(CameraProfile profile)
+        {
+            var existing = settings.Profiles.FirstOrDefault(p => p.Name.Equals(profile.Name, StringComparison.OrdinalIgnoreCase));
+            if (existing != null)
+            {
+                existing.Name = profile.Name;
+                existing.Settings = profile.Settings.Clone();
+            }
+            else
+            {
+                settings.Profiles.Add(new CameraProfile
+                {
+                    Name = profile.Name,
+                    Settings = profile.Settings.Clone()
+                });
+            }
+
+            _lastBaseProfileName = profile.Name;
+            RefreshProfileNamesList();
+            SaveSettings();
+            UpdateActiveProfileState();
+        }
+
+        private void SaveProfileButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new SaveProfileDialog(settings.Profiles.Select(p => p.Name), _lastBaseProfileName)
+            {
+                Owner = this
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                SaveOrUpdateProfile(new CameraProfile
+                {
+                    Name = dialog.ProfileName,
+                    Settings = CaptureCurrentProfileSettings()
+                });
+            }
+        }
+
+        private void DeleteProfileButton_Click(object sender, RoutedEventArgs e)
+        {
+            var profile = settings.Profiles.FirstOrDefault(p => p.Name.Equals(SelectedProfileName, StringComparison.OrdinalIgnoreCase));
+            if (profile == null) return;
+
+            var result = System.Windows.MessageBox.Show(
+                this,
+                $"Delete profile '{profile.Name}'?",
+                "Confirm Delete",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (result != MessageBoxResult.Yes) return;
+
+            settings.Profiles.Remove(profile);
+            _lastBaseProfileName = CameraProfile.DefaultProfileName;
+            RefreshProfileNamesList();
+            LoadProfileByName(CameraProfile.DefaultProfileName);
+        }
+
+        private void ShareProfileButton_Click(object sender, RoutedEventArgs e)
+        {
+            var profile = new CameraProfile
+            {
+                Name = SelectedProfileName,
+                Settings = CaptureCurrentProfileSettings()
+            };
+
+            string shareString = profile.ToShareString();
+            var dialog = new ShareProfileDialog(profile.Name, shareString)
+            {
+                Owner = this
+            };
+            dialog.ShowDialog();
+        }
+
+        private void ImportProfileButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new ImportProfileDialog(settings.Profiles.Select(p => p.Name))
+            {
+                Owner = this
+            };
+
+            if (dialog.ShowDialog() == true && dialog.ImportedProfile != null)
+            {
+                bool apply = dialog.ApplyAfterImport;
+                var imported = dialog.ImportedProfile;
+
+                var existing = settings.Profiles.FirstOrDefault(p => p.Name.Equals(imported.Name, StringComparison.OrdinalIgnoreCase));
+                if (existing != null)
+                {
+                    existing.Name = imported.Name;
+                    existing.Settings = imported.Settings.Clone();
+                }
+                else
+                {
+                    settings.Profiles.Add(imported);
+                }
+
+                RefreshProfileNamesList();
+
+                if (apply)
+                {
+                    LoadProfileByName(imported.Name);
+                }
+                else
+                {
+                    SaveSettings();
+                    UpdateActiveProfileState();
+                }
             }
         }
 

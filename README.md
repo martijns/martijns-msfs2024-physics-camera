@@ -10,6 +10,7 @@ A standalone application for Microsoft Flight Simulator 2020/2024 that adds real
 - **Physics-Based Movement**: Uses a spring-mass-damper physics engine to simulate realistic head movements based on aircraft acceleration and velocity.
 - **Customizable Effects**: Adjust the intensity of lateral, vertical, longitudinal, pitch, and roll movements in real-time via the UI, and many other settings.
 - **Profiles & Sharing**: Save, load, overwrite, and delete custom tweaking presets, and share or import profiles using `MSFSCAM...` share codes.
+- **Per-Aircraft Settings**: Optionally remember your active profile and custom tweaking settings automatically for each aircraft.
 - **Seamless Integration**: Connects to MSFS via SimConnect and injects data via FreeTrack.
 - **Auto-Start & Auto-Exit**: Includes scripts to automatically start with MSFS, and a setting to automatically exit when MSFS closes.
 

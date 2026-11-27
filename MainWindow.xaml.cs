@@ -206,6 +206,35 @@ namespace MsfsPhysicsCamera
             set { if (_exitWhenMsfsExits != value) { _exitWhenMsfsExits = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ExitWhenMsfsExits))); SaveSettings(); } }
         }
 
+        private bool _rememberPerAircraft;
+        public bool RememberPerAircraft
+        {
+            get => _rememberPerAircraft;
+            set
+            {
+                if (_rememberPerAircraft != value)
+                {
+                    _rememberPerAircraft = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RememberPerAircraft)));
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentAircraftVisibility)));
+                    if (_rememberPerAircraft && !string.IsNullOrWhiteSpace(_currentAircraftTitle))
+                    {
+                        ApplyOrCaptureAircraftSettings(_currentAircraftTitle);
+                    }
+                    else
+                    {
+                        SaveSettings();
+                    }
+                }
+            }
+        }
+
+        private string _currentAircraftTitle = string.Empty;
+        public string CurrentAircraftDisplay => string.IsNullOrWhiteSpace(_currentAircraftTitle) ? string.Empty : $"Aircraft: {_currentAircraftTitle}";
+        public Visibility CurrentAircraftVisibility => RememberPerAircraft && !string.IsNullOrWhiteSpace(_currentAircraftTitle)
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
         private AppSettings settings;
         private System.Windows.Forms.NotifyIcon? notifyIcon;
 
@@ -265,8 +294,10 @@ namespace MsfsPhysicsCamera
             _minimizeOnStartup = settings.MinimizeOnStartup;
             _minimizeToTray = settings.MinimizeToTray;
             _exitWhenMsfsExits = settings.ExitWhenMsfsExits;
+            _rememberPerAircraft = settings.RememberPerAircraft;
 
             settings.Profiles ??= new List<CameraProfile>();
+            settings.AircraftSettings ??= new Dictionary<string, AircraftProfileState>(StringComparer.OrdinalIgnoreCase);
             _lastBaseProfileName = !string.IsNullOrWhiteSpace(settings.LastSelectedProfile) && FindProfileByName(settings.LastSelectedProfile) != null
                 ? settings.LastSelectedProfile
                 : CameraProfile.DefaultProfileName;
@@ -396,16 +427,51 @@ namespace MsfsPhysicsCamera
                 settings.MinimizeOnStartup = _minimizeOnStartup;
                 settings.MinimizeToTray = _minimizeToTray;
                 settings.ExitWhenMsfsExits = _exitWhenMsfsExits;
+                settings.RememberPerAircraft = _rememberPerAircraft;
                 settings.LastSelectedProfile = _lastBaseProfileName;
+
+                if (_rememberPerAircraft && !string.IsNullOrWhiteSpace(_currentAircraftTitle))
+                {
+                    settings.AircraftSettings ??= new Dictionary<string, AircraftProfileState>(StringComparer.OrdinalIgnoreCase);
+                    settings.AircraftSettings[_currentAircraftTitle] = new AircraftProfileState
+                    {
+                        ProfileName = _selectedProfileName,
+                        Settings = CaptureCurrentProfileSettings()
+                    };
+                }
+
                 settings.Save();
+            }
+        }
+
+        private void ApplyOrCaptureAircraftSettings(string aircraftTitle)
+        {
+            if (string.IsNullOrWhiteSpace(aircraftTitle)) return;
+
+            settings.AircraftSettings ??= new Dictionary<string, AircraftProfileState>(StringComparer.OrdinalIgnoreCase);
+            if (settings.AircraftSettings.TryGetValue(aircraftTitle, out var savedState) && savedState?.Settings != null)
+            {
+                if (!string.IsNullOrWhiteSpace(savedState.ProfileName)
+                    && !savedState.ProfileName.Equals(CameraProfile.CustomProfileName, StringComparison.OrdinalIgnoreCase)
+                    && FindProfileByName(savedState.ProfileName) != null)
+                {
+                    _lastBaseProfileName = savedState.ProfileName;
+                }
+                ApplyProfileSettings(savedState.Settings);
+                UpdateActiveProfileState();
+                SaveSettings();
+            }
+            else
+            {
+                SaveSettings();
             }
         }
 
         private void OnTweakingSettingChanged()
         {
             if (_isApplyingProfile) return;
-            SaveSettings();
             UpdateActiveProfileState();
+            SaveSettings();
         }
 
         private PhysicsProfileSettings CaptureCurrentProfileSettings()
@@ -468,24 +534,21 @@ namespace MsfsPhysicsCamera
             var current = CaptureCurrentProfileSettings();
             string? matchedName = null;
 
-            if (current.Matches(CameraProfile.CreateDefault().Settings))
+            var preferred = FindProfileByName(_lastBaseProfileName);
+            if (preferred != null && current.Matches(preferred.Settings))
+            {
+                matchedName = preferred.Name;
+            }
+            else if (current.Matches(CameraProfile.CreateDefault().Settings))
             {
                 matchedName = CameraProfile.DefaultProfileName;
             }
             else
             {
-                var preferred = FindProfileByName(_lastBaseProfileName);
-                if (preferred != null && preferred.Name != CameraProfile.DefaultProfileName && current.Matches(preferred.Settings))
+                var match = settings.Profiles.FirstOrDefault(p => current.Matches(p.Settings));
+                if (match != null)
                 {
-                    matchedName = preferred.Name;
-                }
-                else
-                {
-                    var match = settings.Profiles.FirstOrDefault(p => current.Matches(p.Settings));
-                    if (match != null)
-                    {
-                        matchedName = match.Name;
-                    }
+                    matchedName = match.Name;
                 }
             }
 
@@ -742,6 +805,22 @@ namespace MsfsPhysicsCamera
 
         private void UpdateUI(object? sender, EventArgs e)
         {
+            string aircraftTitle = (simConnect != null && simConnect.IsConnected)
+                ? simConnect.CurrentAircraftTitle
+                : string.Empty;
+
+            if (!string.Equals(aircraftTitle, _currentAircraftTitle, StringComparison.Ordinal))
+            {
+                _currentAircraftTitle = aircraftTitle;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentAircraftDisplay)));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentAircraftVisibility)));
+
+                if (_rememberPerAircraft && !string.IsNullOrWhiteSpace(aircraftTitle))
+                {
+                    ApplyOrCaptureAircraftSettings(aircraftTitle);
+                }
+            }
+
             if (simConnect != null && simConnect.IsConnected)
             {
                 StatusText = "Connected to MSFS SimConnect";

@@ -130,6 +130,7 @@
                         <CheckBox Content="Minimize on startup" IsChecked="{Binding MinimizeOnStartup}" Margin="0,0,10,10" VerticalAlignment="Center" />
                         <CheckBox Content="Minimize to tray" IsChecked="{Binding MinimizeToTray}" Margin="0,0,10,10" VerticalAlignment="Center" />
                         <CheckBox Content="Exit when MSFS exits" IsChecked="{Binding ExitWhenMsfsExits}" Margin="0,0,10,10" VerticalAlignment="Center" />
+                        <CheckBox Content="Remember settings per aircraft" IsChecked="{Binding RememberPerAircraft}" Margin="0,0,10,10" VerticalAlignment="Center" ToolTip="Automatically saves and restores your selected settings for each aircraft." />
                     </WrapPanel>
                 </StackPanel>
             </StackPanel>
@@ -137,7 +138,8 @@
             <!-- Right Side (Profiles & Tweaking) -->
             <StackPanel Grid.Row="1" Grid.Column="1" Margin="10,0,0,0">
             <TextBlock Text="Profiles" FontWeight="Bold" FontSize="16" Margin="0,0,0,10" />
-            <ComboBox x:Name="ProfileComboBox" ItemsSource="{Binding ProfileNames}" SelectedItem="{Binding SelectedProfileName, Mode=TwoWay}" Margin="0,0,0,8" />
+            <ComboBox x:Name="ProfileComboBox" ItemsSource="{Binding ProfileNames}" SelectedItem="{Binding SelectedProfileName, Mode=TwoWay}" Margin="0,0,0,4" />
+            <TextBlock Text="{Binding CurrentAircraftDisplay}" Visibility="{Binding CurrentAircraftVisibility}" Foreground="Gray" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,0,0,8" ToolTip="{Binding CurrentAircraftDisplay}" />
             <WrapPanel Margin="0,0,0,15">
                 <Button Content="Save as" Width="56" Margin="0,0,6,6" IsEnabled="{Binding CanSaveProfile}" Click="SaveProfileButton_Click" ToolTip="Save current custom settings as a profile" />
                 <Button Content="Delete" Width="56" Margin="0,0,6,6" IsEnabled="{Binding CanDeleteProfile}" Click="DeleteProfileButton_Click" ToolTip="Delete the selected custom profile" />

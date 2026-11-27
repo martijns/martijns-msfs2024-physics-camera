@@ -33,12 +33,14 @@ namespace MsfsPhysicsCamera
         public bool MinimizeOnStartup { get; set; } = false;
         public bool MinimizeToTray { get; set; } = false;
         public bool ExitWhenMsfsExits { get; set; } = false;
+        public bool RememberPerAircraft { get; set; } = false;
 
         public double? WindowTop { get; set; }
         public double? WindowLeft { get; set; }
 
         public List<CameraProfile> Profiles { get; set; } = new();
         public string? LastSelectedProfile { get; set; }
+        public Dictionary<string, AircraftProfileState> AircraftSettings { get; set; } = new();
 
         private static string SettingsFilePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.json");
 
@@ -71,5 +73,11 @@ namespace MsfsPhysicsCamera
                 Console.WriteLine("Failed to save settings: " + ex.Message);
             }
         }
+    }
+
+    public class AircraftProfileState
+    {
+        public string? ProfileName { get; set; }
+        public PhysicsProfileSettings Settings { get; set; } = new();
     }
 }

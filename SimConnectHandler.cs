@@ -14,8 +14,8 @@ namespace MsfsPhysicsCamera
         private CancellationTokenSource _cts = new CancellationTokenSource();
         private Thread? _messageThread;
 
-        public enum DEFINITIONS { TelemetryData }
-        public enum DATA_REQUESTS { TelemetryRequest }
+        public enum DEFINITIONS { TelemetryData, AircraftInfo }
+        public enum DATA_REQUESTS { TelemetryRequest, AircraftInfoRequest }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public struct TelemetryData
@@ -31,7 +31,16 @@ namespace MsfsPhysicsCamera
             public int CameraState;
         }
 
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+        public struct AircraftInfo
+        {
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
+            public string Title;
+        }
+
         private TelemetryData _currentData;
+        private string _currentAircraftTitle = string.Empty;
+
         public TelemetryData CurrentData
         {
             get
@@ -39,6 +48,17 @@ namespace MsfsPhysicsCamera
                 lock (_dataLock)
                 {
                     return _currentData;
+                }
+            }
+        }
+
+        public string CurrentAircraftTitle
+        {
+            get
+            {
+                lock (_dataLock)
+                {
+                    return _currentAircraftTitle;
                 }
             }
         }
@@ -75,6 +95,9 @@ namespace MsfsPhysicsCamera
 
                 simconnect.RegisterDataDefineStruct<TelemetryData>(DEFINITIONS.TelemetryData);
 
+                simconnect.AddToDataDefinition(DEFINITIONS.AircraftInfo, "TITLE", null, SIMCONNECT_DATATYPE.STRING256, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.RegisterDataDefineStruct<AircraftInfo>(DEFINITIONS.AircraftInfo);
+
                 simconnect.OnRecvOpen += Simconnect_OnRecvOpen;
                 simconnect.OnRecvQuit += Simconnect_OnRecvQuit;
                 simconnect.OnRecvException += Simconnect_OnRecvException;
@@ -82,6 +105,8 @@ namespace MsfsPhysicsCamera
 
                 // Request data every frame
                 simconnect.RequestDataOnSimObject(DATA_REQUESTS.TelemetryRequest, DEFINITIONS.TelemetryData, SimConnect.SIMCONNECT_OBJECT_ID_USER, SIMCONNECT_PERIOD.SIM_FRAME, 0, 0, 0, 0);
+                // Request aircraft title when it changes
+                simconnect.RequestDataOnSimObject(DATA_REQUESTS.AircraftInfoRequest, DEFINITIONS.AircraftInfo, SimConnect.SIMCONNECT_OBJECT_ID_USER, SIMCONNECT_PERIOD.SECOND, SIMCONNECT_DATA_REQUEST_FLAG.CHANGED, 0, 0, 0);
 
                 Console.WriteLine("Connected to MSFS.");
                 _isConnected = true;
@@ -127,6 +152,14 @@ namespace MsfsPhysicsCamera
                     _currentData = (TelemetryData)data.dwData[0];
                 }
             }
+            else if (data.dwRequestID == (uint)DATA_REQUESTS.AircraftInfoRequest)
+            {
+                var info = (AircraftInfo)data.dwData[0];
+                lock (_dataLock)
+                {
+                    _currentAircraftTitle = info.Title?.Trim() ?? string.Empty;
+                }
+            }
         }
 
         private void Simconnect_OnRecvException(SimConnect sender, SIMCONNECT_RECV_EXCEPTION data)
@@ -138,6 +171,10 @@ namespace MsfsPhysicsCamera
         {
             Console.WriteLine("MSFS exited. Disconnecting...");
             _isConnected = false;
+            lock (_dataLock)
+            {
+                _currentAircraftTitle = string.Empty;
+            }
             _cts.Cancel();
         }
 

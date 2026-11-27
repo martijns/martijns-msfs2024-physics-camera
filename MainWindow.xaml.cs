@@ -816,6 +816,9 @@ namespace MsfsPhysicsCamera
             {
                 bool registryWasCorrect = false;
                 bool fixFailed = false;
+                string expectedDir = Path.GetFullPath(AppDomain.CurrentDomain.BaseDirectory)
+                    .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                string expectedDllPath = Path.Combine(expectedDir, "NPClient64.dll");
 
                 try
                 {
@@ -823,10 +826,11 @@ namespace MsfsPhysicsCamera
                     if (key != null)
                     {
                         var pathValue = key.GetValue("Path") as string;
-                        if (!string.IsNullOrEmpty(pathValue))
+                        if (!string.IsNullOrWhiteSpace(pathValue))
                         {
-                            string dllPath = Path.Combine(pathValue, "NPClient64.dll");
-                            if (File.Exists(dllPath))
+                            string configuredDir = Path.GetFullPath(pathValue)
+                                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                            if (configuredDir.Equals(expectedDir, StringComparison.OrdinalIgnoreCase) && File.Exists(expectedDllPath))
                             {
                                 registryWasCorrect = true;
                             }
@@ -866,7 +870,8 @@ namespace MsfsPhysicsCamera
                         {
                             foreach (ProcessModule module in process.Modules)
                             {
-                                if (module.ModuleName.Equals("NPClient64.dll", StringComparison.OrdinalIgnoreCase))
+                                if (module.ModuleName.Equals("NPClient64.dll", StringComparison.OrdinalIgnoreCase)
+                                    && Path.GetFullPath(module.FileName).Equals(expectedDllPath, StringComparison.OrdinalIgnoreCase))
                                 {
                                     isNpClientLoaded = true;
                                     break;

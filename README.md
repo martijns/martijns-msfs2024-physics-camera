@@ -45,17 +45,47 @@ Verified to work on:
 
 **I do see telemetry and output in the app while moving my airplane ingame, but my camera does not seem to react. Even at x5 multiplier. What gives?**
 
-If you haven't already, you might need to restart MSFS. When you launch the app for the first time, it enables the "TrackIR" controller. A restart of MSFS 2024 is needed to make it appear.
+Restart MSFS. Launching the app for the first time enables the "TrackIR" controller, which requires an MSFS restart to show up.
 
-**Can I use this app together with my head tracker (Tobii / TrackIR / Opentrack)?**
+**Can I use this app together with my head tracker (Tobii / TrackIR / Opentrack / Beam Eye Tracker)?**
 
-Unfortunately, no. Both your head tracker and this tool will send camera offsets to Flight Simulator. Flight Simulator will pick one over the other, or just alternate the inputs, which will manifest into weird behavior.
+No. Both your head tracker and this app send absolute camera values to MSFS, so it will either pick one or alternate between them and cause jitter.
+
+(The green "Head tracking is configured correctly" status just means this app's own virtual TrackIR hook is set up, not that external head trackers are supported.)
+
+**Can I use this app in VR?**
+
+No, in VR you are already wearing a head tracker. A virtual head tracker would mess it up.
+
+**Does this work with ChasePlane or FSRealistic?**
+
+Anything else that fakes head tracking (like ChasePlane's "Human Touch") will conflict. Disabling that feature on the other app's side may let them work together. FSRealistic isn't tested, though some users report running both fine.
 
 **It feels like the camera is drifting at high speed or in turns**
 
 While ascending/descending the gravity weighs on your head while you're pitched up/down. Similarly in turns. Since v1.5 there are two settings that remedy this, of which one is enabled by default.
 * The "Return-to-center speed" (defaulting to 0.5) option will make the camera return to center slowly over time.
 * Disabling "Simulate gravity" prevents the fake gravity calculation based on pitch/roll angles.
+
+**The effect is too strong or too weak for my plane**
+
+Defaults are tuned for bizjets, so GA or airliners will likely need tweaking. Changes apply live without restarting and save automatically. Note that dragging a multiplier slider all the way left goes to `-5x` (inverted) — `0x` is off. Use **Clamps** to cap max camera travel.
+
+**Why does the camera spike or jump in certain aircraft (e.g. A2A Comanche, Fenix)?**
+
+The app uses raw SimConnect telemetry. Some aircraft inject exaggerated accelerations (like custom taxi vibrations), which the physics engine picks up. Lower or zero out the affected axis multiplier (usually `Trans Y` or `Trans X`), or tighten **Clamps**.
+
+**Where is the settings panel? Is there an in-game toolbar?**
+
+There is no in-game panel; it's a standalone Windows app. If you enabled minimize to tray, check your system tray.
+
+**AutoStart-Install.bat can't find `exe.xml`**
+
+Make sure you're on v1.7+ (it creates `exe.xml` if missing). Auto-start is optional anyway—you can just run `MsfsPhysicsCamera.exe` manually before or during a flight.
+
+**How do I completely uninstall, or why did another game's camera break?**
+
+`AutoStart-Uninstall.bat` only removes the auto-start entry. To remove the TrackIR hook as well, delete `HKEY_CURRENT_USER\Software\NaturalPoint\NATURALPOINT\NPClient Location`.
 
 ## Development
 
